@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://lumen_enemy_reveal"]
+
+[ext_resource type="Shader" path="res://shaders/enemy_reveal.gdshader" id="1"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/ping_radius = 14.0
+shader_parameter/reveal_duration = 2.2

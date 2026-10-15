@@ -1,0 +1,8 @@
+# Godot 4 binary cache
+.godot/
+
+# macOS
+.DS_Store
+
+# exported builds
+/builds/

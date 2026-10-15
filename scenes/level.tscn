@@ -1,0 +1,96 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/platform.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/win_zone.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/reveal_mesh.gd" id="7"]
+[ext_resource type="Material" path="res://materials/ground.tres" id="8"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.008, 0.011, 0.018, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.045, 0.07, 0.08, 1)
+ambient_light_energy = 0.18
+fog_enabled = true
+fog_light_color = Color(0.02, 0.045, 0.042, 1)
+fog_density = 0.012
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(2.6, 0.4, 2.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(2.6, 0.4, 2.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_goal"]
+size = Vector3(5, 2, 5)
+
+[node name="Level" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(18, 0, 0, 0, 1, 0, 0, 0, 18, 0, -0.2, 3)
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("BoxMesh_ground")
+material_override = ExtResource("8")
+script = ExtResource("7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("BoxShape3D_ground")
+
+[node name="Step_0" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 15)
+
+[node name="Step_1" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 12.2)
+
+[node name="Step_2" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 9.4)
+
+[node name="Step_3" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, 6.6)
+
+[node name="Step_4" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.0, 3.8)
+
+[node name="Step_5" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.0, 1.0)
+
+[node name="Step_6" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.0, -1.8)
+
+[node name="Step_7" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.0, -4.6)
+
+[node name="Step_8" parent="." instance=ExtResource("1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9.0, -7.4)
+
+[node name="GoalPlatform" parent="." instance=ExtResource("1")]
+transform = Transform3D(1.8, 0, 0, 0, 1, 0, 0, 0, 1.8, 0, 10.0, -10.2)
+
+[node name="Enemies" type="Node3D" parent="."]
+script = ExtResource("5")
+
+[node name="Hunter1" parent="Enemies" instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 24)
+
+[node name="Hunter2" parent="Enemies" instance=ExtResource("2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.2, 8)
+
+[node name="Player" parent="." instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 18)
+
+[node name="WinZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.7, -10.2)
+script = ExtResource("6")
+
+[node name="CShape" type="CollisionShape3D" parent="WinZone"]
+shape = SubResource("BoxShape3D_goal")
+
+[node name="HUD" parent="." instance=ExtResource("4")]
