@@ -21,7 +21,9 @@ func _process(_delta: float) -> void:
 	if overlay.visible:
 		return
 	var cd: float = game.ping_cooldown_left
-	var total: float = game.ping_cooldown
+	var total: float = game.cooldown_total
+	if total <= 0.0:
+		total = game.ping_cooldown
 	meter.max_value = total
 	meter.value = total - cd
 	meter_label.text = "LIDAR READY" if game.can_ping else "RECHARGING " + str(ceilf(cd))

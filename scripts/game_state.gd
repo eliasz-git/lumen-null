@@ -27,13 +27,15 @@ func _process(delta: float) -> void:
 
 
 var ping_cooldown_left := 0.0
+var cooldown_total := 0.0
 
 
-func fire_pulse(from: Vector3, radial: float) -> void:
+func fire_pulse(from: Vector3, radial: float, cooldown_mult: float = 1.0) -> void:
 	if not can_ping or not alive:
 		return
 	can_ping = false
-	ping_cooldown_left = ping_cooldown
+	ping_cooldown_left = ping_cooldown * cooldown_mult
+	cooldown_total = ping_cooldown * cooldown_mult
 	ping_origin = from
 	last_ping_pos = from
 	ping_radius = radial
@@ -50,6 +52,8 @@ func kill() -> void:
 		return
 	alive = false
 	player_died.emit()
+	if _player and _player.has_method("play_death_sound"):
+		_player.play_death_sound()
 	get_tree().paused = true
 
 

@@ -9,11 +9,18 @@ extends CharacterBody3D
 var target := Vector3.ZERO
 var has_target := false
 var idle := true   # true when the hunter is waiting, it cannot move to idle pose set at spawn/settle
+var heartbeat: AudioStreamPlayer
 
 
 func _ready() -> void:
 	target = global_position
 	_set_busy(true)
+	# Heartbeat drone that gets louder as the hunter closes in.
+	heartbeat = AudioStreamPlayer.new()
+	heartbeat.stream = load("res://sounds/heartbeat.wav")
+	heartbeat.autoplay = true
+	add_child(heartbeat)
+	heartbeat.playing = true
 
 
 # Called by spawner when a pulse is heard. Teleport-free; just retarget.
@@ -44,8 +51,12 @@ func _physics_process(delta: float) -> void:
 
 	# Kill check against the player.
 	var p: Node3D = game._player
-	if is_instance_valid(p) and p and global_position.distance_to(p.global_position) < kill_radius:
-		game.kill()
+	if is_instance_valid(p) and p:
+		var dist: float = global_position.distance_to(p.global_position)
+		if heartbeat:
+			heartbeat.volume_db = linear_to_db(clampf(1.0 - dist / 12.0, 0.05, 1.0))
+		if dist < kill_radius:
+			game.kill()
 
 
 func _set_busy(b: bool) -> void:

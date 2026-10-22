@@ -7,6 +7,9 @@ extends CharacterBody3D
 @export var jump_velocity := 5.0
 @export var mouse_sensitivity := 0.002
 @export var pulse_radius := 14.0
+@export var min_pulse_radius := 6.0
+@export var max_pulse_radius := 20.0
+@export var max_hold_time := 1.0
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -14,11 +17,22 @@ extends CharacterBody3D
 @onready var game: Node = get_node("/root/GameState")
 
 var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
+var charging := false
+var hold_time := 0.0
+var ping_sound: AudioStreamPlayer
+var death_sound: AudioStreamPlayer
 
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	game.register_player(self)
+	# Audio: ping on pulse, sting on death.
+	ping_sound = AudioStreamPlayer.new()
+	ping_sound.stream = load("res://sounds/ping.wav")
+	add_child(ping_sound)
+	death_sound = AudioStreamPlayer.new()
+	death_sound.stream = load("res://sounds/death.wav")
+	add_child(death_sound)
 	# Orient the player with an opening pulse shortly after spawn.
 	get_tree().create_timer(0.5).timeout.connect(_auto_scan)
 
@@ -28,16 +42,26 @@ func _auto_scan() -> void:
 		fire_pulse()
 
 
+func _process(delta: float) -> void:
+	if charging:
+		hold_time += delta
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clampf(head.rotation.x, -1.5, 1.5)
 
-	if event is InputEventKey and event.pressed and not event.echo:
+	if event is InputEventKey and not event.echo:
 		match event.keycode:
 			KEY_E:
-				fire_pulse()
+				if event.pressed:
+					charging = true
+					hold_time = 0.0
+				else:
+					charging = false
+					_release_pulse()
 
 
 func _physics_process(delta: float) -> void:
@@ -64,10 +88,30 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
+func _release_pulse() -> void:
+	if not charging:
+		return
+	var t: float = clampf(hold_time / max_hold_time, 0.0, 1.0)
+	var radius: float = lerpf(min_pulse_radius, max_pulse_radius, t)
+	var cooldown_mult: float = lerpf(1.0, 2.0, t)
+	game.fire_pulse(global_position, radius, cooldown_mult)
+	if pulse_light:
+		pulse_light.light_energy = 2.0
+	charging = false
+	hold_time = 0.0
+
+
 func fire_pulse() -> void:
 	game.fire_pulse(global_position, pulse_radius)
 	if pulse_light:
 		pulse_light.light_energy = 2.0
+	if ping_sound:
+		ping_sound.play()
+
+
+func play_death_sound() -> void:
+	if death_sound:
+		death_sound.play()
 
 
 func visible_ping_cooldown() -> float:
