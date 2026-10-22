@@ -1,0 +1,58 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1"]
+
+[node name="TitleScreen" type="Control"]
+script = ExtResource("1")
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_stretch_ratio = 1.0
+
+[node name="TitleLabel" type="Label" parent="."]
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = -120.0
+offset_right = 0.0
+offset_bottom = 0.0
+text = "LUMEN NULL"
+theme_override_colors/font_color = Color(0.35, 1.0, 0.7, 1)
+theme_override_font_sizes/font_size = 72
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartButton" type="Button" parent="."]
+anchors_preset = 15
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 40.0
+offset_right = 120.0
+offset_bottom = 80.0
+text = "Start"
+theme_override_font_sizes/font_size = 24
+focus_mode = 2
+
+[node name="InstructionsLabel" type="Label" parent="."]
+anchors_preset = 15
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = 110.0
+offset_right = 240.0
+offset_bottom = 150.0
+text = "WASD move   Space jump   E ping the dark   Reach the escape platform"
+theme_override_colors/font_color = Color(0.7, 0.8, 0.75, 0.7)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
