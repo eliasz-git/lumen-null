@@ -1,0 +1,8 @@
+[gd_resource type="NavigationMesh" format=3]
+
+[resource]
+vertices = PackedVector3Array(Vector3(-24.0, -0.2, -24.0), Vector3(24.0, -0.2, -24.0), Vector3(24.0, -0.2, 24.0), Vector3(-24.0, -0.2, 24.0))
+indices = PackedInt32Array([0, 1, 2, 0, 2, 3])
+polygon_up = Vector3(0, 1, 0)
+edge_connection_margin = 0.4
+path_margin = 0.4
