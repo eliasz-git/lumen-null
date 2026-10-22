@@ -23,7 +23,7 @@ func _ready() -> void:
 	heartbeat.playing = true
 
 
-# Called by spawner when a pulse is heard. Teleport-free; just retarget.
+# Called by spawner when a pulse is heard. Move toward the last ping location.
 func hear_ping(at: Vector3) -> void:
 	target = at
 	has_target = true
