@@ -5,7 +5,7 @@ extends StaticBody3D
 @export var move_distance := 4.0
 @export var move_speed := 2.0
 
-@onready var tween: Tween = $Tween
+@onready var tween: Tween = $Tween as Tween
 
 var start_pos: Vector3
 var end_pos: Vector3
