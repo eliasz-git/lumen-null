@@ -9,4 +9,4 @@ shader_parameter/ping_radius = 14.0
 shader_parameter/reveal_duration = 2.2
 shader_parameter/point_density = 0.35
 shader_parameter/wire_scale = 0.8
-shader_parameter/show_base = true
+shader_parameter/show_base = false

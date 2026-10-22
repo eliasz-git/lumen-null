@@ -33,8 +33,6 @@ func _ready() -> void:
 	death_sound = AudioStreamPlayer.new()
 	death_sound.stream = load("res://sounds/death.wav")
 	add_child(death_sound)
-	# Orient the player with an opening pulse shortly after spawn.
-	get_tree().create_timer(0.5).timeout.connect(_auto_scan)
 
 
 func _auto_scan() -> void:
@@ -60,8 +58,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					charging = true
 					hold_time = 0.0
 				else:
-					charging = false
 					_release_pulse()
+					charging = false
 
 
 func _physics_process(delta: float) -> void:
