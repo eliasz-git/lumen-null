@@ -33,6 +33,7 @@ func _ready() -> void:
 	death_sound = AudioStreamPlayer.new()
 	death_sound.stream = load("res://sounds/death.wav")
 	add_child(death_sound)
+	get_tree().paused = false
 
 
 func _auto_scan() -> void:
@@ -46,7 +47,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clampf(head.rotation.x, -1.5, 1.5)
