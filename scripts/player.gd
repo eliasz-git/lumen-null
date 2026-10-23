@@ -44,6 +44,8 @@ func _auto_scan() -> void:
 func _process(delta: float) -> void:
 	if charging:
 		hold_time += delta
+	# Keep mouse captured so camera rotation works.
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func _unhandled_input(event: InputEvent) -> void:

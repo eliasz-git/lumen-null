@@ -35,11 +35,11 @@ void fragment() {
 
 	// Deterministic pseudo-random dot grid from local position.
 	vec3 h = fract(sin(local_pos * vec3(1.7, 2.3, 3.1)) * 43758.5453);
-	float dot = step(1.0 - point_density, h.r * h.g);
+	float dot = step(0.95, h.r * h.g);
 
-	// Faint wireframe edges.
-	vec3 edge = step(0.97, abs(fract(local_pos * wire_scale)));
-	float wire = max(edge.r, max(edge.g, edge.b)) * 0.25;
+	// Prominent wireframe edges — the scan reveals structure as glowing lines.
+	vec3 edge = step(0.985, abs(fract(local_pos * wire_scale)));
+	float wire = max(edge.r, max(edge.g, edge.b)) * 0.6;
 
 	float lit = max(dot, wire);
 
@@ -48,7 +48,7 @@ void fragment() {
 		base = vec3(0.055, 0.065, 0.075);
 	}
 
-	vec3 glow = tint * reveal * lit * 2.0;
+	vec3 glow = tint * reveal * lit * 4.0;
 	vec3 col = base + glow;
 	ALBEDO = col;
 	EMISSION = col;

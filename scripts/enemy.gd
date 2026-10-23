@@ -21,6 +21,12 @@ func _ready() -> void:
 	heartbeat.autoplay = true
 	add_child(heartbeat)
 	heartbeat.playing = true
+	heartbeat.finished.connect(_loop_heartbeat)
+
+
+func _loop_heartbeat() -> void:
+	if heartbeat:
+		heartbeat.play()
 
 
 # Called by spawner when a pulse is heard. Move toward the last ping location.
