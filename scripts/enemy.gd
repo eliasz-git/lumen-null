@@ -19,7 +19,6 @@ func _ready() -> void:
 	heartbeat = AudioStreamPlayer.new()
 	heartbeat.stream = load("res://sounds/heartbeat.wav")
 	heartbeat.autoplay = true
-	heartbeat.stream.set_loop(true)
 	add_child(heartbeat)
 	heartbeat.playing = true
 
