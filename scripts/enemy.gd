@@ -20,7 +20,6 @@ func _ready() -> void:
 	heartbeat.stream = load("res://sounds/heartbeat.wav")
 	heartbeat.autoplay = true
 	add_child(heartbeat)
-	heartbeat.looping = true
 	heartbeat.playing = true
 
 
