@@ -6,6 +6,7 @@ extends Control
 
 
 func _ready() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	start_button.grab_focus()
 	start_button.pressed.connect(_on_start_pressed)
 

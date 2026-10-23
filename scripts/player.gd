@@ -44,15 +44,15 @@ func _auto_scan() -> void:
 func _process(delta: float) -> void:
 	if charging:
 		hold_time += delta
-	# Keep mouse captured so camera rotation works.
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clampf(head.rotation.x, -1.5, 1.5)
+		event.accept()
 
 	if event is InputEventKey and not event.echo:
 		match event.keycode:
