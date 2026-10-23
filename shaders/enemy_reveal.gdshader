@@ -26,13 +26,13 @@ void fragment() {
 		reveal = falloff * fade;
 	}
 
-	// Cold dark body silhouette, so a warm red pulse is the only cue.
-	vec3 body = vec3(0.02, 0.02, 0.04);
+	// Cold dark body silhouette, red pulse reveals the hunter.
+	vec3 body = vec3(0.01, 0.01, 0.015);
 
 	vec3 h = fract(sin(local_pos * vec3(2.9, 1.9, 4.3)) * 9123.0);
-	float dot = step(0.75, h.r * h.g);
+	float dot = step(0.6, h.r * h.g);
 
-	vec3 col = mix(body, vec3(1.0, 0.12, 0.06) * 2.0, reveal * dot);
+	vec3 col = mix(body, vec3(1.0, 0.1, 0.05) * 3.0, reveal * dot);
 	ALBEDO = vec3(0.0);
 	EMISSION = col;
 	ROUGHNESS = 1.0;
