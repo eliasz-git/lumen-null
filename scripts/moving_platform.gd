@@ -14,7 +14,7 @@ func _ready() -> void:
 	end_pos = start_pos + Vector3(0, 0, move_distance)
 	var duration: float = move_distance / move_speed
 	var tween = create_tween()
-	tween.tween_property(global_position, "z", end_pos.z, duration)
-	tween.tween_property(global_position, "z", start_pos.z, duration)
+	tween.tween_property(self, "global_position:z", end_pos.z, duration)
+	tween.tween_property(self, "global_position:z", start_pos.z, duration)
 	tween.set_loops(-1)
 	tween.play()
