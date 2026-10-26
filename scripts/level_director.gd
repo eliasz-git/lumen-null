@@ -4,6 +4,8 @@ extends Node
 ## "scan" steps pause for the tooltip, then unpause and wait for the player to
 ## actually fire a scan (the hunter ignores it) before continuing.
 
+const LevelData := preload("res://scripts/level_data.gd")
+
 @onready var game: Node = get_node("/root/GameState")
 @onready var hud: Node = $"../HUD"
 
@@ -48,11 +50,26 @@ var steps := [
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if game.current_level != 0:
+		active = false
+		_intro_banner()
+		return
+	game.tutorial_active = true
 	game.hunter_suppressed = true
 	game.ping_fired.connect(_on_ping_fired)
 	hud.tooltip_acknowledged.connect(_on_tooltip_acknowledged)
 	hud.tutorial_skip_requested.connect(skip_tutorial)
 	_show_step(0)
+
+
+func _intro_banner() -> void:
+	var def: Dictionary = LevelData.get_level(game.current_level)
+	hud.show_tutorial_prompt("LEVEL %d  //  %s\n%s" % [game.current_level + 1, def["name"], def["tagline"]])
+	game.hunter_suppressed = true
+	await get_tree().create_timer(4.0).timeout
+	game.hunter_suppressed = false
+	await get_tree().create_timer(3.0).timeout
+	hud.show_tutorial_prompt("")
 
 
 func _show_step(index: int) -> void:
@@ -96,6 +113,7 @@ func skip_tutorial() -> void:
 	if not active:
 		return
 	active = false
+	game.tutorial_active = false
 	waiting_for_scan = false
 	game.hunter_suppressed = false
 	hud.show_tutorial_prompt("")
@@ -105,6 +123,7 @@ func skip_tutorial() -> void:
 
 func _finish() -> void:
 	active = false
+	game.tutorial_active = false
 	game.hunter_suppressed = false
 	hud.show_tutorial_prompt("")
 	hud.hide_tooltip()

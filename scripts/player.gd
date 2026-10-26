@@ -129,7 +129,7 @@ func _footsteps(delta: float) -> void:
 	step_left -= delta
 	if step_left <= 0.0:
 		var sprinting := speed > move_speed + 0.5
-		step_sound.volume_db = -7.0 if sprinting else -17.0
+		step_sound.volume_db = -15.0 if sprinting else -27.0
 		step_sound.pitch_scale = randf_range(0.9, 1.1)
 		step_sound.play()
 		step_left = 0.33 if sprinting else 0.52

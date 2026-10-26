@@ -12,6 +12,10 @@ var alive := true
 var won := false
 
 # Cooldown state synced from the player for HUD display.
+var current_level := 0
+var level_def: Dictionary = {}
+var open_level_select := false   # title screen opens on level select
+var tutorial_active := false     # level director is running the tutorial
 var cooldown_left := 0.0
 var cooldown_total := 1.6
 var charge := -1.0          # 0..1 while charging, -1 otherwise
@@ -52,7 +56,7 @@ func win() -> void:
 	get_tree().paused = true
 
 
-func restart() -> void:
+func _reset_run() -> void:
 	alive = true
 	won = false
 	hunter_suppressed = false
@@ -60,5 +64,23 @@ func restart() -> void:
 	cooldown_total = 1.6
 	charge = -1.0
 	elapsed = 0.0
+	tutorial_active = false
 	get_tree().paused = false
+
+
+func restart() -> void:
+	_reset_run()
 	get_tree().reload_current_scene()
+
+
+func start_level(index: int) -> void:
+	current_level = index
+	_reset_run()
+	get_tree().change_scene_to_file("res://scenes/level.tscn")
+
+
+func go_to_menu(open_select: bool = false) -> void:
+	open_level_select = open_select
+	_reset_run()
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	get_tree().change_scene_to_file("res://scenes/title_screen.tscn")

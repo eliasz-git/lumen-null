@@ -1,15 +1,14 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=12 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="1_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
-[ext_resource type="PackedScene" path="res://scenes/wall.tscn" id="4_wall"]
 [ext_resource type="PackedScene" path="res://scenes/exit_beacon.tscn" id="5_beacon"]
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="6_spawner"]
 [ext_resource type="Script" path="res://scripts/win_zone.gd" id="7_win"]
 [ext_resource type="Script" path="res://scripts/level_director.gd" id="10_director"]
 [ext_resource type="Script" path="res://scripts/nav_grid.gd" id="11_nav"]
 [ext_resource type="Script" path="res://scripts/ambience.gd" id="12_ambience"]
+[ext_resource type="Script" path="res://scripts/level_builder.gd" id="13_builder"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
@@ -37,6 +36,7 @@ size = Vector3(36, 0.25, 36)
 size = Vector3(3.5, 4, 3.5)
 
 [node name="Level" type="Node3D"]
+script = ExtResource("13_builder")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
@@ -59,75 +59,11 @@ mesh = SubResource("CeilingMesh")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ceiling"]
 shape = SubResource("CeilingShape")
 
-[node name="NorthBoundary" parent="." instance=ExtResource("4_wall")]
-position = Vector3(0, 0, 18)
-scale = Vector3(18, 1, 1)
-
-[node name="SouthBoundary" parent="." instance=ExtResource("4_wall")]
-position = Vector3(0, 0, -18)
-scale = Vector3(18, 1, 1)
-
-[node name="WestBoundary" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-18, 0, 0)
-scale = Vector3(1, 1, 18)
-
-[node name="EastBoundary" parent="." instance=ExtResource("4_wall")]
-position = Vector3(18, 0, 0)
-scale = Vector3(1, 1, 18)
-
-[node name="StartWallLeft" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-10, 0, 9)
-scale = Vector3(8, 1, 1)
-
-[node name="StartWallRight" parent="." instance=ExtResource("4_wall")]
-position = Vector3(10, 0, 9)
-scale = Vector3(8, 1, 1)
-
-[node name="CoverNorth" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-4, 0, 5)
-scale = Vector3(6, 1, 1)
-
-[node name="CoverCenter" parent="." instance=ExtResource("4_wall")]
-position = Vector3(5, 0, 0)
-scale = Vector3(6, 1, 1)
-
-[node name="CoverSouth" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-5, 0, -6)
-scale = Vector3(7, 1, 1)
-
-[node name="ExitApproach" parent="." instance=ExtResource("4_wall")]
-position = Vector3(9, 0, -10)
-scale = Vector3(1, 1, 4)
-
-[node name="PillarStartW" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-12, 0, 13)
-
-[node name="PillarStartE" parent="." instance=ExtResource("4_wall")]
-position = Vector3(12, 0, 13)
-
-[node name="PillarEast" parent="." instance=ExtResource("4_wall")]
-position = Vector3(15, 0, 6)
-
-[node name="PillarBackW" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-9, 0, -11)
-
-[node name="PillarBackM" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-4, 0, -10)
-
-[node name="PillarBackE" parent="." instance=ExtResource("4_wall")]
-position = Vector3(4, 0, -11)
-
-[node name="PillarBackFar" parent="." instance=ExtResource("4_wall")]
-position = Vector3(-15, 0, -14)
-
 [node name="ExitBeacon" parent="." instance=ExtResource("5_beacon")]
 position = Vector3(0, 0, -15)
 
 [node name="Enemies" type="Node3D" parent="."]
 script = ExtResource("6_spawner")
-
-[node name="Hunter" parent="Enemies" instance=ExtResource("1_enemy")]
-position = Vector3(1, 0.2, 2.5)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0.1, 14)

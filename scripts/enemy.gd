@@ -15,6 +15,7 @@ enum State { PATROL, REACT, INVESTIGATE, SEARCH, CHASE }
 @export var lose_radius := 9.0
 @export var noise_radius := 8.0
 @export var noise_cooldown := 2.5
+@export var speed_scale := 1.0
 
 var patrol_points: Array[Vector3] = [
 	Vector3(-12, 0, 2.5), Vector3(12, 0, 2.5), Vector3(14, 0, -3), Vector3(-12, 0, -3),
@@ -28,6 +29,8 @@ var state_time := 0.0
 var target := Vector3.ZERO
 var path := PackedVector3Array()
 var path_i := 0
+var path_target := Vector3.ZERO
+var path_pending := false   # planned before the nav grid existed; re-plan once ready
 var patrol_i := 0
 var wait_left := 0.0
 var repath_left := 0.0
@@ -53,7 +56,7 @@ func _ready() -> void:
 
 	step_sound = AudioStreamPlayer3D.new()
 	step_sound.stream = load("res://sounds/footstep_hunter.wav")
-	step_sound.volume_db = 2.0
+	step_sound.volume_db = 7.0
 	step_sound.max_distance = 30.0
 	step_sound.unit_size = 5.0
 	add_child(step_sound)
@@ -65,6 +68,9 @@ func _ready() -> void:
 	alert_sound.unit_size = 8.0
 	add_child(alert_sound)
 
+	patrol_speed *= speed_scale
+	investigate_speed *= speed_scale
+	chase_speed *= speed_scale
 	patrol_i = _nearest_patrol()
 
 
@@ -94,6 +100,8 @@ func _physics_process(delta: float) -> void:
 			var scanner := get_tree().get_first_node_in_group("scanner")
 			if scanner != null:
 				scanner.paint_hunter(global_position, 45)
+	if path_pending:
+		_set_path(path_target)
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -193,11 +201,14 @@ func _has_line_of_sight(player: Node3D) -> bool:
 
 
 func _set_path(to: Vector3) -> void:
+	path_target = to
 	var nav := get_tree().get_first_node_in_group("nav")
 	if nav != null and nav.ready_ok:
 		path = nav.find_path(global_position, to)
+		path_pending = false
 	else:
 		path = PackedVector3Array([to])
+		path_pending = true
 	path_i = 0
 
 

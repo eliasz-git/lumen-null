@@ -1,21 +1,16 @@
 extends Node3D
-## Spawns hunter enemies and makes each one hear every lidar pulse.
-## Place enemies as children (of type CharacterBody3D with enemy.gd).
+## Makes every hunter under this node hear every lidar scan.
 
 @onready var game: Node = get_node("/root/GameState")
-var hunters: Array = []
 
 
 func _ready() -> void:
-	for child in get_children():
-		if child is CharacterBody3D and child.has_method("hear_ping"):
-			hunters.append(child)
 	game.ping_fired.connect(_on_ping_fired)
 
 
 func _on_ping_fired(from: Vector3) -> void:
 	if game.hunter_suppressed:
 		return
-	for h in hunters:
-		if is_instance_valid(h):
+	for h in get_children():
+		if is_instance_valid(h) and h.has_method("hear_ping"):
 			h.hear_ping(from)
