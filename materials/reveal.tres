@@ -7,6 +7,5 @@ shader = ExtResource("1")
 shader_parameter/tint = Color(1, 1, 1, 1)
 shader_parameter/ping_radius = 14.0
 shader_parameter/reveal_duration = 2.2
-shader_parameter/point_density = 0.85
-shader_parameter/wire_scale = 0.6
+shader_parameter/point_density = 0.20
 shader_parameter/show_base = false

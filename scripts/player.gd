@@ -1,31 +1,37 @@
 extends CharacterBody3D
 ## LUMEN NULL first-person-ish player.
-## WASD move, Space jump, E = lidar pulse.
+## WASD move, Space jump, E = lidar pulse (cone scan forward).
 
 @export var move_speed := 5.0
 @export var sprint_speed := 8.5
 @export var jump_velocity := 5.0
 @export var mouse_sensitivity := 0.002
-@export var pulse_radius := 14.0
-@export var min_pulse_radius := 6.0
-@export var max_pulse_radius := 20.0
+@export var min_ray_count := 600
+@export var max_ray_count := 1800
 @export var max_hold_time := 1.0
+@export var scan_cooldown := 1.6
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var pulse_light: OmniLight3D = $Head/Camera3D/PulseLight
+@onready var scanner: Node3D = $Head/Camera3D
 @onready var game: Node = get_node("/root/GameState")
+@onready var settings: Node = get_node("/root/GameSettings")
 
 var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var charging := false
 var hold_time := 0.0
+var cooldown_left := 0.0
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
+var pulse_charge_sound: AudioStreamPlayer
+var was_ping_ready := true
 
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	game.register_player(self)
+	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
 	# Audio: ping on pulse, sting on death.
 	ping_sound = AudioStreamPlayer.new()
 	ping_sound.stream = load("res://sounds/ping.wav")
@@ -33,17 +39,32 @@ func _ready() -> void:
 	death_sound = AudioStreamPlayer.new()
 	death_sound.stream = load("res://sounds/death.wav")
 	add_child(death_sound)
+	pulse_charge_sound = AudioStreamPlayer.new()
+	pulse_charge_sound.stream = load("res://sounds/ping.wav")
+	pulse_charge_sound.volume_db = -18.0
+	add_child(pulse_charge_sound)
 	get_tree().paused = false
 
 
-func _auto_scan() -> void:
-	if game.can_ping:
-		fire_pulse()
-
-
 func _process(delta: float) -> void:
+	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
+	if cooldown_left > 0.0:
+		cooldown_left -= delta
+		game.set_cooldown(cooldown_left, scan_cooldown)
+	if not was_ping_ready and cooldown_left <= 0.0 and ping_sound and not charging:
+		ping_sound.volume_db = -16.0
+		ping_sound.pitch_scale = 1.55
+		ping_sound.play()
+	was_ping_ready = cooldown_left <= 0.0
 	if charging:
 		hold_time += delta
+		if pulse_charge_sound and not pulse_charge_sound.playing:
+			pulse_charge_sound.play()
+		if pulse_charge_sound:
+			pulse_charge_sound.pitch_scale = lerpf(0.8, 1.35, clampf(hold_time / max_hold_time, 0.0, 1.0))
+	else:
+		if pulse_charge_sound and pulse_charge_sound.playing:
+			pulse_charge_sound.stop()
 
 
 func _input(event: InputEvent) -> void:
@@ -52,14 +73,14 @@ func _input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clampf(head.rotation.x, -1.5, 1.5)
-		event.accept()
 
 	if event is InputEventKey and not event.echo:
 		match event.keycode:
 			KEY_E:
 				if event.pressed:
-					charging = true
-					hold_time = 0.0
+					if cooldown_left <= 0.0:
+						charging = true
+						hold_time = 0.0
 				else:
 					_release_pulse()
 					charging = false
@@ -90,24 +111,22 @@ func _physics_process(delta: float) -> void:
 
 
 func _release_pulse() -> void:
-	if not charging:
+	if not charging or cooldown_left > 0.0:
 		return
 	var t: float = clampf(hold_time / max_hold_time, 0.0, 1.0)
-	var radius: float = lerpf(min_pulse_radius, max_pulse_radius, t)
-	var cooldown_mult: float = lerpf(1.0, 2.0, t)
-	game.fire_pulse(global_position, radius, cooldown_mult)
-	if pulse_light:
-		pulse_light.light_energy = 2.0
+	scanner.ray_count = int(lerpf(min_ray_count, max_ray_count, t))
+	scanner.max_range = lerpf(12.0, 24.0, t)
+	scanner.scan()
+	if ping_sound:
+		ping_sound.volume_db = 0.0
+		ping_sound.pitch_scale = 1.0
+		ping_sound.play()
+	cooldown_left = scan_cooldown
+	game.set_cooldown(cooldown_left, scan_cooldown)
 	charging = false
 	hold_time = 0.0
-
-
-func fire_pulse() -> void:
-	game.fire_pulse(global_position, pulse_radius)
-	if pulse_light:
-		pulse_light.light_energy = 2.0
-	if ping_sound:
-		ping_sound.play()
+	# Tell the hunter the player pinged (unless suppressed during tutorial).
+	game.ping_fired.emit(camera.global_position)
 
 
 func play_death_sound() -> void:
@@ -115,5 +134,5 @@ func play_death_sound() -> void:
 		death_sound.play()
 
 
-func visible_ping_cooldown() -> float:
-	return game.ping_cooldown_left
+func visible_cooldown_left() -> float:
+	return cooldown_left

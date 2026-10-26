@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/reveal.gdshader" id="1"]
+
+[resource]
+shader = ExtResource("1")
+shader_parameter/tint = Color(0.1, 0.8, 1, 1)
+shader_parameter/ping_radius = 14.0
+shader_parameter/reveal_duration = 2.2
+shader_parameter/point_density = 0.35
+shader_parameter/show_base = false

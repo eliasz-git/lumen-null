@@ -3,7 +3,7 @@ render_mode unshaded, cull_back;
 
 // LUMEN NULL reveal shader
 // Surfaces are pitch black by default. After a lidar pulse, geometry within
-// the pulse radius lights up as a glowing point-cloud and fades back to black.
+// the pulse radius lights up only as a glowing point-cloud and fades to black.
 // `show_base` adds a faint always-visible silhouette for grounding surfaces.
 
 uniform float time_since_ping : hint_range(0.0, 10.0) = 10.0;
@@ -12,15 +12,16 @@ uniform float ping_radius : hint_range(0.0, 40.0) = 14.0;
 uniform float reveal_duration : hint_range(0.5, 6.0) = 2.2;
 uniform vec3 tint : source_color = vec3(0.35, 1.0, 0.7);
 uniform float point_density : hint_range(0.0, 1.0) = 0.42;
-uniform float wire_scale : hint_range(0.0, 10.0) = 1.4;
 uniform bool show_base = false;
 
 varying vec3 world_pos;
 varying vec3 local_pos;
+varying vec3 world_normal;
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	local_pos = VERTEX;
+	world_normal = normalize(mat3(MODEL_MATRIX) * NORMAL);
 }
 
 void fragment() {
@@ -33,15 +34,12 @@ void fragment() {
 		reveal = spatial_falloff * fade;
 	}
 
-	// Deterministic pseudo-random dot grid from local position.
-	vec3 h = fract(sin(local_pos * vec3(1.7, 2.3, 3.1)) * 43758.5453);
-	float dot = step(0.95, h.r * h.g);
-
-	// Prominent wireframe edges — the scan reveals structure as glowing lines.
-	vec3 edge = step(0.985, abs(fract(local_pos * wire_scale)));
-	float wire = max(edge.r, max(edge.g, edge.b)) * 0.6;
-
-	float lit = max(dot, wire);
+	// Fine, irregular scan returns. World space keeps the pattern consistent
+	// across scaled walls while the high frequency creates the earlier
+	// twinkling point-cloud look without wireframe lines.
+	vec3 h = fract(sin(world_pos * vec3(5.2, 7.1, 9.3)) * 43758.5453);
+	float dot = step(1.0 - point_density, h.r * h.g);
+	float lit = dot;
 
 	vec3 base = vec3(0.0);
 	if (show_base) {

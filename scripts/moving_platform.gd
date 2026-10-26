@@ -1,4 +1,4 @@
-extends StaticBody3D
+extends AnimatableBody3D
 
 ## Moving platform that slides back and forth. Player can stand on it and be carried.
 

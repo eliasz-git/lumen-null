@@ -1,34 +1,35 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=10 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/platform.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://scenes/moving_platform.tscn" id="5"]
-[ext_resource type="PackedScene" path="res://scenes/wall.tscn" id="6"]
-[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="7"]
-[ext_resource type="Script" path="res://scripts/win_zone.gd" id="8"]
-[ext_resource type="Script" path="res://scripts/reveal_mesh.gd" id="9"]
-[ext_resource type="Material" path="res://materials/ground.tres" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/wall.tscn" id="4_wall"]
+[ext_resource type="PackedScene" path="res://scenes/exit_beacon.tscn" id="5_beacon"]
+[ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="6_spawner"]
+[ext_resource type="Script" path="res://scripts/win_zone.gd" id="7_win"]
+[ext_resource type="Script" path="res://scripts/level_director.gd" id="10_director"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 1
-background_color = Color(0.008, 0.011, 0.018, 1)
+background_color = Color(0, 0, 0, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.045, 0.07, 0.08, 1)
-ambient_light_energy = 0.18
+ambient_light_color = Color(0, 0, 0, 1)
+ambient_light_energy = 0
 fog_enabled = true
-fog_light_color = Color(0.02, 0.045, 0.042, 1)
-fog_density = 0.015
+fog_light_color = Color(0, 0, 0, 1)
+fog_density = 0.022
 
-[sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(2.6, 0.4, 2.6)
+[sub_resource type="BoxMesh" id="GroundMesh"]
+size = Vector3(36, 0.4, 36)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(2.6, 0.4, 2.6)
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(36, 0.4, 36)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_goal"]
-size = Vector3(5, 2, 5)
+[sub_resource type="BoxMesh" id="CeilingMesh"]
+size = Vector3(36, 0.25, 36)
+
+[sub_resource type="BoxShape3D" id="ExitShape"]
+size = Vector3(3.5, 4, 3.5)
 
 [node name="Level" type="Node3D"]
 
@@ -36,81 +37,78 @@ size = Vector3(5, 2, 5)
 environment = SubResource("Environment_1")
 
 [node name="Ground" type="StaticBody3D" parent="."]
-transform = Transform3D(18, 0, 0, 0, 1, 0, 0, 0, 18, 0, -0.2, 3)
+position = Vector3(0, -0.2, 0)
 
 [node name="Mesh" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("BoxMesh_ground")
-material_override = ExtResource("10")
-script = ExtResource("9")
+mesh = SubResource("GroundMesh")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-shape = SubResource("BoxShape3D_ground")
+shape = SubResource("GroundShape")
 
-[node name="Step_0" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 15)
+[node name="Ceiling" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.95, 0)
+mesh = SubResource("CeilingMesh")
 
-[node name="Step_1" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0, 0.1, 12.2)
+[node name="NorthBoundary" parent="." instance=ExtResource("4_wall")]
+position = Vector3(0, 0, 18)
+scale = Vector3(18, 1, 1)
 
-[node name="MovingPlatform" parent="." instance=ExtResource("5")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0, 0.4, 8.0)
+[node name="SouthBoundary" parent="." instance=ExtResource("4_wall")]
+position = Vector3(0, 0, -18)
+scale = Vector3(18, 1, 1)
 
-[node name="Wall_1" parent="." instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.1, 10.0)
+[node name="WestBoundary" parent="." instance=ExtResource("4_wall")]
+position = Vector3(-18, 0, 0)
+scale = Vector3(1, 1, 18)
 
-[node name="Step_2" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 0.1, 9.4)
+[node name="EastBoundary" parent="." instance=ExtResource("4_wall")]
+position = Vector3(18, 0, 0)
+scale = Vector3(1, 1, 18)
 
-[node name="Wall_2" parent="." instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0, 0.1, 6.0)
+[node name="StartWallLeft" parent="." instance=ExtResource("4_wall")]
+position = Vector3(-10, 0, 9)
+scale = Vector3(8, 1, 1)
 
-[node name="Step_3" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.1, 6.6)
+[node name="StartWallRight" parent="." instance=ExtResource("4_wall")]
+position = Vector3(10, 0, 9)
+scale = Vector3(8, 1, 1)
 
-[node name="Step_4" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0, 0.1, 3.8)
+[node name="CoverNorth" parent="." instance=ExtResource("4_wall")]
+position = Vector3(-4, 0, 5)
+scale = Vector3(6, 1, 1)
 
-[node name="Wall_3" parent="." instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, 0.1, 2.0)
+[node name="CoverCenter" parent="." instance=ExtResource("4_wall")]
+position = Vector3(5, 0, 0)
+scale = Vector3(6, 1, 1)
 
-[node name="Step_5" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0, -0.1, 1.0)
+[node name="CoverSouth" parent="." instance=ExtResource("4_wall")]
+position = Vector3(-5, 0, -6)
+scale = Vector3(7, 1, 1)
 
-[node name="Step_6" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.0, -0.3, -1.8)
+[node name="ExitApproach" parent="." instance=ExtResource("4_wall")]
+position = Vector3(9, 0, -10)
+scale = Vector3(1, 1, 4)
 
-[node name="Wall_4" parent="." instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0, -0.5, -4.0)
-
-[node name="Step_7" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.0, -0.7, -4.6)
-
-[node name="Step_8" parent="." instance=ExtResource("1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.0, -1.0, -7.4)
-
-[node name="Wall_5" parent="." instance=ExtResource("6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.0, -1.2, -8.0)
-
-[node name="GoalPlatform" parent="." instance=ExtResource("1")]
-transform = Transform3D(1.8, 0, 0, 0, 1, 0, 0, 0, 1.8, 0, 11.0, -10.2)
+[node name="ExitBeacon" parent="." instance=ExtResource("5_beacon")]
+position = Vector3(0, 0, -14)
 
 [node name="Enemies" type="Node3D" parent="."]
-script = ExtResource("7")
+script = ExtResource("6_spawner")
 
-[node name="Hunter1" parent="Enemies" instance=ExtResource("2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.2, 24)
+[node name="Hunter" parent="Enemies" instance=ExtResource("1_enemy")]
+position = Vector3(1, 0.2, 2)
 
-[node name="Hunter2" parent="Enemies" instance=ExtResource("2")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 0.2, 8)
-
-[node name="Player" parent="." instance=ExtResource("3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.1, 18)
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(0, 0.1, 14)
 
 [node name="WinZone" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.7, -10.2)
-script = ExtResource("8")
+position = Vector3(0, 1.7, -14)
+script = ExtResource("7_win")
 
-[node name="CShape" type="CollisionShape3D" parent="WinZone"]
-shape = SubResource("BoxShape3D_goal")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WinZone"]
+shape = SubResource("ExitShape")
 
-[node name="HUD" parent="." instance=ExtResource("4")]
+[node name="HUD" parent="." instance=ExtResource("3_hud")]
+
+[node name="LevelDirector" type="Node" parent="."]
+script = ExtResource("10_director")

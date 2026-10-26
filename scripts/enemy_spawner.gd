@@ -14,6 +14,8 @@ func _ready() -> void:
 
 
 func _on_ping_fired(from: Vector3) -> void:
+	if game.hunter_suppressed:
+		return
 	for h in hunters:
 		if is_instance_valid(h):
 			h.hear_ping(from)

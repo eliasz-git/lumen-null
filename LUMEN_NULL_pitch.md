@@ -74,7 +74,7 @@ Blind in the dark, one lidar pulse to find the next platform — but every ping 
 ## Solution
 
 - Player pings (E) to reveal platforms as a point cloud of dots
-- Every ping also draws the enemy toward that spot
+- Every ping also causes the enemy to react to and search that spot
 - Seeing enough to jump means risking being found
 
 ---
@@ -97,3 +97,11 @@ Blind in the dark, one lidar pulse to find the next platform — but every ping 
 
 - Feedback on the concept
 - Time to build the MVP demo
+
+## Current prototype status
+
+The MVP now includes a title screen, first-person movement, charged lidar
+pulses, reveal shaders for level geometry, moving platforms, two hunters, a
+HUD, win/lose states, and audio feedback. The next milestone is a short,
+authored vertical slice with a tutorial beat, an escalating hunter encounter,
+and a stronger final escape sequence.

@@ -1,6 +1,7 @@
 [gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/scanner.gd" id="2_scanner"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.3
@@ -18,8 +19,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
 current = true
+script = ExtResource("2_scanner")
 
 [node name="PulseLight" type="OmniLight3D" parent="Head/Camera3D"]
-light_color = Color(0.3, 1, 0.7, 1)
+light_color = Color(1, 1, 1, 1)
 light_energy = 0.0
+light_cull_mask = 2
 omni_range = 9.0

@@ -1,5 +1,11 @@
 extends CanvasLayer
-## HUD: instructions, lidar cooldown meter, death/win overlays.
+## Minimal HUD: vignette, reticle, cooldown bar, death/win overlay, and the
+## pause-and-tooltip tutorial panel.
+
+signal tooltip_acknowledged
+signal tutorial_skip_requested
+
+const ACK_GUARD_MS := 450
 
 @onready var meter: ProgressBar = $Control/CooldownBar/Bar
 @onready var meter_label: Label = $Control/CooldownBar/Bar/Label
@@ -7,48 +13,84 @@ extends CanvasLayer
 @onready var overlay_title: Label = $Control/Overlay/Center/VBox/Title
 @onready var overlay_hint: Label = $Control/Overlay/Center/VBox/Hint
 @onready var game: Node = get_node("/root/GameState")
+@onready var tutorial_prompt: Label = $Control/TutorialPrompt
+@onready var tooltip: Control = $Control/Tooltip
+@onready var tooltip_title: Label = $Control/Tooltip/TooltipBox/TooltipTitle
+@onready var tooltip_text: Label = $Control/Tooltip/TooltipBox/TooltipText
+@onready var tooltip_hint: Label = $Control/Tooltip/TooltipBox/TooltipHint
+
+var tooltip_shown_at := 0
 
 
 func _ready() -> void:
-	# Run input.process while the tree is paused (death/win overlay) so R can restart.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	overlay.visible = false
+	tooltip.visible = false
+	tutorial_prompt.text = ""
 	game.player_died.connect(_on_player_died)
 	game.player_won.connect(_on_player_won)
 
 
 func _process(_delta: float) -> void:
-	if overlay.visible:
+	if overlay.visible or tooltip.visible:
 		return
-	var cd: float = game.ping_cooldown_left
-	var total: float = game.cooldown_total
-	if total <= 0.0:
-		total = game.ping_cooldown
+	var total: float = maxf(game.cooldown_total, 0.01)
+	var left: float = game.cooldown_left
 	meter.max_value = total
-	meter.value = total - cd
-	meter_label.text = "LIDAR READY" if game.can_ping else "RECHARGING " + str(ceilf(cd))
+	meter.value = total - left
+	meter_label.text = "SCAN READY" if left <= 0.0 else "RECHARGING"
 
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
+	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+
+	if tooltip.visible:
+		get_viewport().set_input_as_handled()
+		if Time.get_ticks_msec() - tooltip_shown_at < ACK_GUARD_MS:
+			return
 		match event.keycode:
-			KEY_R:
-				game.restart()
+			KEY_SPACE:
+				tooltip.visible = false
+				tooltip_acknowledged.emit()
 			KEY_ESCAPE:
-				if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				tutorial_skip_requested.emit()
+		return
+
+	match event.keycode:
+		KEY_R:
+			game.restart()
+		KEY_ESCAPE:
+			tutorial_skip_requested.emit()
+			if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _on_player_died() -> void:
 	overlay.visible = true
-	overlay_title.text = "IT FOUND YOU"
-	overlay_title.modulate = Color(0.95, 0.2, 0.12)
-	overlay_hint.text = "Press R to try again"
+	overlay_title.text = "LOST"
+	overlay_hint.text = "R  //  TRY AGAIN"
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _on_player_won() -> void:
 	overlay.visible = true
-	overlay_title.text = "YOU ESCAPED"
-	overlay_title.modulate = Color(0.35, 1.0, 0.6)
-	overlay_hint.text = "Press R to play again"
+	overlay_title.text = "EXIT FOUND"
+	overlay_hint.text = "R  //  RESTART TUTORIAL"
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func show_tutorial_prompt(message: String) -> void:
+	tutorial_prompt.text = message
+
+
+func show_tooltip(title: String, text: String) -> void:
+	tooltip_title.text = title
+	tooltip_text.text = text
+	tooltip_hint.text = "SPACE  continue        ESC  skip tutorial"
+	tooltip_shown_at = Time.get_ticks_msec()
+	tooltip.visible = true
+
+
+func hide_tooltip() -> void:
+	tooltip.visible = false
