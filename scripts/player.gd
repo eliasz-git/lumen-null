@@ -26,6 +26,8 @@ var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
 var was_ping_ready := true
+var step_sound: AudioStreamPlayer
+var step_left := 0.0
 
 
 func _ready() -> void:
@@ -43,6 +45,9 @@ func _ready() -> void:
 	pulse_charge_sound.stream = load("res://sounds/ping.wav")
 	pulse_charge_sound.volume_db = -18.0
 	add_child(pulse_charge_sound)
+	step_sound = AudioStreamPlayer.new()
+	step_sound.stream = load("res://sounds/footstep.wav")
+	add_child(step_sound)
 	get_tree().paused = false
 
 
@@ -56,6 +61,7 @@ func _process(delta: float) -> void:
 		ping_sound.pitch_scale = 1.55
 		ping_sound.play()
 	was_ping_ready = cooldown_left <= 0.0
+	game.charge = clampf(hold_time / max_hold_time, 0.0, 1.0) if charging else -1.0
 	if charging:
 		hold_time += delta
 		if pulse_charge_sound and not pulse_charge_sound.playing:
@@ -108,6 +114,25 @@ func _physics_process(delta: float) -> void:
 		pulse_light.light_energy = maxf(pulse_light.light_energy, 0.0)
 
 	move_and_slide()
+	_footsteps(delta)
+
+
+func is_noisy() -> bool:
+	return is_on_floor() and Vector2(velocity.x, velocity.z).length() > move_speed + 0.5
+
+
+func _footsteps(delta: float) -> void:
+	var speed := Vector2(velocity.x, velocity.z).length()
+	if not is_on_floor() or speed < 1.0:
+		step_left = 0.0
+		return
+	step_left -= delta
+	if step_left <= 0.0:
+		var sprinting := speed > move_speed + 0.5
+		step_sound.volume_db = -7.0 if sprinting else -17.0
+		step_sound.pitch_scale = randf_range(0.9, 1.1)
+		step_sound.play()
+		step_left = 0.33 if sprinting else 0.52
 
 
 func _release_pulse() -> void:

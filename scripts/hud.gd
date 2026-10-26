@@ -34,6 +34,11 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if overlay.visible or tooltip.visible:
 		return
+	if game.charge >= 0.0:
+		meter.max_value = 1.0
+		meter.value = game.charge
+		meter_label.text = "CHARGING"
+		return
 	var total: float = maxf(game.cooldown_total, 0.01)
 	var left: float = game.cooldown_left
 	meter.max_value = total
@@ -75,8 +80,10 @@ func _on_player_died() -> void:
 
 func _on_player_won() -> void:
 	overlay.visible = true
-	overlay_title.text = "EXIT FOUND"
-	overlay_hint.text = "R  //  RESTART TUTORIAL"
+	var settings := get_node("/root/GameSettings")
+	var new_best: bool = settings.record_time(game.elapsed)
+	overlay_title.text = "NEW BEST" if new_best else "EXIT FOUND"
+	overlay_hint.text = "TIME  %s     BEST  %s\n\nR  //  PLAY AGAIN" % [_fmt(game.elapsed), _fmt(settings.best_time)]
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
@@ -94,3 +101,7 @@ func show_tooltip(title: String, text: String) -> void:
 
 func hide_tooltip() -> void:
 	tooltip.visible = false
+
+
+func _fmt(t: float) -> String:
+	return "%02d:%02d" % [int(t) / 60, int(t) % 60]

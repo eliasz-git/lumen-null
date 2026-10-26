@@ -20,7 +20,7 @@ var steps := [
 	{
 		"type": "info",
 		"title": "THE SCANNER",
-		"text": "Your lidar fires a cone of rays in front of you.\nEvery ray that hits something leaves a dot behind.\nDots are colored by distance: yellow is close, purple is far.",
+		"text": "Your lidar fires a cone of rays in front of you.\nEvery ray that hits something leaves a white dot behind.\nThe dots fade after a few seconds, so remember what you saw.",
 	},
 	{
 		"type": "scan",
@@ -31,17 +31,17 @@ var steps := [
 	{
 		"type": "info",
 		"title": "THE HUNTER",
-		"text": "From now on, every scan tells the hunter where you were.\nIt lights up RED when you hit it, and it walks to the\nplace you scanned from. Scan, then move.",
+		"text": "From now on, every scan tells the hunter where you were.\nIt shows up RED when a scan hits it, and it walks to the\nplace you scanned from. It also hears you sprinting,\nand it will chase you if you get too close.",
 	},
 	{
 		"type": "info",
 		"title": "COVER",
-		"text": "Use the walls for cover. Scan to find a route,\nthen relocate while the hunter searches the old spot.",
+		"text": "Walls block its line of sight. Scan to find a route,\nthen relocate while it searches the old spot.\nListen for its footsteps and heartbeat.",
 	},
 	{
 		"type": "info",
 		"title": "THE EXIT",
-		"text": "Find the CYAN beacon at the far end of the facility.\nReach it to escape.\n\nGood luck.",
+		"text": "The exit is a gate hidden somewhere in the dark.\nScan to find it: it shows up CYAN.\nYou can also hear its chime from a distance.\n\nGood luck.",
 	},
 ]
 

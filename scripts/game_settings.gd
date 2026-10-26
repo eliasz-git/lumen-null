@@ -4,6 +4,7 @@ extends Node
 var mouse_sensitivity := 0.002
 var master_volume := 0.8
 var fullscreen := false
+var best_time := 0.0
 
 const SETTINGS_PATH := "user://lumen_null_settings.cfg"
 
@@ -52,6 +53,7 @@ func _load() -> void:
 	mouse_sensitivity = float(config.get_value("comfort", "mouse_sensitivity", mouse_sensitivity))
 	master_volume = float(config.get_value("comfort", "master_volume", master_volume))
 	fullscreen = bool(config.get_value("comfort", "fullscreen", fullscreen))
+	best_time = float(config.get_value("records", "best_time", best_time))
 
 
 func _save() -> void:
@@ -59,4 +61,14 @@ func _save() -> void:
 	config.set_value("comfort", "mouse_sensitivity", mouse_sensitivity)
 	config.set_value("comfort", "master_volume", master_volume)
 	config.set_value("comfort", "fullscreen", fullscreen)
+	config.set_value("records", "best_time", best_time)
 	config.save(SETTINGS_PATH)
+
+
+## Returns true if this run is a new best.
+func record_time(t: float) -> bool:
+	if best_time <= 0.0 or t < best_time:
+		best_time = t
+		_save()
+		return true
+	return false

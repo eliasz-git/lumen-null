@@ -14,8 +14,15 @@ var won := false
 # Cooldown state synced from the player for HUD display.
 var cooldown_left := 0.0
 var cooldown_total := 1.6
+var charge := -1.0          # 0..1 while charging, -1 otherwise
+var elapsed := 0.0          # run time, excludes paused time
 
 @onready var _player: Node3D
+
+
+func _process(delta: float) -> void:
+	if alive and not won:
+		elapsed += delta
 
 
 func register_player(p: Node3D) -> void:
@@ -51,5 +58,7 @@ func restart() -> void:
 	hunter_suppressed = false
 	cooldown_left = 0.0
 	cooldown_total = 1.6
+	charge = -1.0
+	elapsed = 0.0
 	get_tree().paused = false
 	get_tree().reload_current_scene()
