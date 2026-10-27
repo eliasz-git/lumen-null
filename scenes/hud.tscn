@@ -49,7 +49,7 @@ offset_top = 18.0
 offset_bottom = 42.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.82)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 22
 text = "HOLD E, THEN RELEASE  //  SCAN THE DARK"
 horizontal_alignment = 1
 
@@ -170,18 +170,18 @@ theme_override_constants/margin_bottom = 40
 [node name="TooltipTitle" type="Label" parent="Control/Tooltip/TooltipBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
 
 [node name="TooltipText" type="Label" parent="Control/Tooltip/TooltipBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 30
 horizontal_alignment = 1
 
 [node name="TooltipHint" type="Label" parent="Control/Tooltip/TooltipBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 22
 text = "Press SPACE to continue"
 horizontal_alignment = 1

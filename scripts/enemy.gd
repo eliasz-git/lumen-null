@@ -3,7 +3,7 @@ extends CharacterBody3D
 ## it came from (pathfinding around walls), searches, and chases if you get
 ## close. Sprinting nearby is also audible to it.
 
-enum State { PATROL, REACT, INVESTIGATE, SEARCH, CHASE }
+enum State { PATROL, REACT, INVESTIGATE, SEARCH, CHASE, STUNNED }
 
 @export var patrol_speed := 1.5
 @export var investigate_speed := 3.2
@@ -38,6 +38,7 @@ var noise_left := 0.0
 var step_left := 0.0
 var glow_pulse := 0.0
 var glow_left := 0.0   # while > 0, keep painting itself in dots
+var stunned_left := 0.0   # while > 0, hunter is stunned and cannot move
 var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 
 var heartbeat: AudioStreamPlayer
@@ -75,7 +76,7 @@ func _ready() -> void:
 
 
 func hear_ping(at: Vector3) -> void:
-	if state == State.CHASE:
+	if state == State.CHASE or state == State.STUNNED:
 		return
 	target = at
 	state = State.REACT
@@ -89,6 +90,15 @@ func _light_up(seconds: float) -> void:
 	var scanner := get_tree().get_first_node_in_group("scanner")
 	if scanner != null:
 		scanner.paint_hunter(global_position, 150)
+
+
+func get_stunned() -> void:
+	if state == State.STUNNED:
+		return
+	state = State.STUNNED
+	stunned_left = 1.0
+	alert_sound.play()
+	_light_up(0.6)
 
 
 func _physics_process(delta: float) -> void:
@@ -153,6 +163,14 @@ func _physics_process(delta: float) -> void:
 				state = State.PATROL
 				patrol_i = _nearest_patrol()
 				_set_path(patrol_points[patrol_i])
+		State.STUNNED:
+			_stop(delta)
+			stunned_left -= delta
+			rotation.y += sin(stunned_left * 4.0) * delta * 2.0
+			if stunned_left <= 0.0:
+				state = State.PATROL
+				patrol_i = _nearest_patrol()
+				_set_path(patrol_points[patrol_i])
 		State.CHASE:
 			speed = chase_speed
 			repath_left -= delta
@@ -174,12 +192,14 @@ func _physics_process(delta: float) -> void:
 	model.animate(horizontal.length(), delta)
 	_footsteps(horizontal.length(), delta)
 
-	if has_player and dist < kill_radius:
-		game.kill()
+	if has_player and state != State.STUNNED:
+		var horizontal_dist := Vector2(global_position.x - player.global_position.x, global_position.z - player.global_position.z).length()
+		if horizontal_dist < kill_radius:
+			game.kill()
 
 
 func _sense_player(player: Node3D, dist: float) -> void:
-	if state != State.CHASE and dist < chase_radius and _has_line_of_sight(player):
+	if state != State.CHASE and state != State.STUNNED and dist < chase_radius and _has_line_of_sight(player):
 		state = State.CHASE
 		repath_left = 0.0
 		alert_sound.play()

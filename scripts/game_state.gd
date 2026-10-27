@@ -83,6 +83,12 @@ func hear_noise(position: Vector3) -> void:
 			h.hear_ping(position)
 
 
+func stun_hunter_at(position: Vector3) -> void:
+	for h in get_tree().get_group("hunter"):
+		if h.has_method("get_stunned") and h.global_position.distance_to(position) < 14.0:
+			h.get_stunned()
+
+
 func _reset_run() -> void:
 	alive = true
 	won = false

@@ -43,6 +43,7 @@ func _ready() -> void:
 	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
 	scan_key = int(settings.get("scan_key"))
 	joy_scan_button = 2
+	scanner.strong_pulse_at.connect(func(pos): game.stun_hunter_at(pos))
 	# Audio: ping on pulse, sting on death.
 	ping_sound = AudioStreamPlayer.new()
 	ping_sound.stream = load("res://sounds/ping.wav")
@@ -180,7 +181,7 @@ func _release_pulse() -> void:
 	var t: float = clampf(hold_time / max_hold_time, 0.0, 1.0)
 	scanner.ray_count = int(lerpf(min_ray_count, max_ray_count, t))
 	scanner.max_range = lerpf(12.0, 24.0, t)
-	scanner.scan()
+	scanner.scan(t)
 	if ping_sound:
 		ping_sound.volume_db = 0.0
 		ping_sound.pitch_scale = 1.0

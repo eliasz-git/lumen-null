@@ -20,6 +20,7 @@ var exclude_rids: Array[RID] = []
 var last_kind_hits := [0, 0, 0]   # world, hunter, exit gate (last scan)
 
 signal scan_fired(origin: Vector3, forward: Vector3, hit_count: int)
+signal strong_pulse_at(position: Vector3)
 
 
 func _ready() -> void:
@@ -57,7 +58,7 @@ func _process(delta: float) -> void:
 	material.set_shader_parameter("now", elapsed)
 
 
-func scan() -> int:
+func scan(charge: float = 1.0) -> int:
 	var origin := global_position
 	var forward := -global_transform.basis.z
 	var up := Vector3.UP
@@ -70,6 +71,7 @@ func scan() -> int:
 	var cos_max := cos(cone_rad)
 	var space := get_world_3d().direct_space_state
 	var hits := 0
+	var strong_hunter_hit := false
 	last_kind_hits = [0, 0, 0]
 
 	for i in ray_count:
@@ -96,6 +98,8 @@ func scan() -> int:
 		if collider is Node:
 			if (collider as Node).is_in_group("hunter"):
 				kind = 1.0
+				if charge >= 0.8:
+					strong_hunter_hit = true
 			elif (collider as Node).is_in_group("beacon"):
 				kind = 2.0
 			if (collider as Node).has_method("on_scan"):
@@ -107,6 +111,8 @@ func scan() -> int:
 
 	multimesh.visible_instance_count = filled
 	scan_fired.emit(origin, forward, hits)
+	if strong_hunter_hit:
+		strong_pulse_at.emit(origin)
 	return hits
 
 
