@@ -23,6 +23,8 @@ var charging := false
 var hold_time := 0.0
 var cooldown_left := 0.0
 var current_cooldown := 1.6
+var scan_key: int = KEY_E
+var joy_scan_button: int = 2
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
@@ -35,6 +37,8 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	game.register_player(self)
 	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
+	scan_key = int(settings.get("scan_key"))
+	joy_scan_button = 2
 	# Audio: ping on pulse, sting on death.
 	ping_sound = AudioStreamPlayer.new()
 	ping_sound.stream = load("res://sounds/ping.wav")
@@ -88,15 +92,21 @@ func _input(event: InputEvent) -> void:
 		head.rotation.x = clampf(head.rotation.x, -1.5, 1.5)
 
 	if event is InputEventKey and not event.echo:
-		match event.keycode:
-			KEY_E:
-				if event.pressed:
-					if cooldown_left <= 0.0:
-						charging = true
-						hold_time = 0.0
-				else:
-					_release_pulse()
-					charging = false
+		if event.keycode == scan_key:
+			_handle_scan_input(event.pressed)
+	if event is InputEventJoypadButton and event.device == 0:
+		if event.button_index == joy_scan_button:
+			_handle_scan_input(event.pressed)
+
+
+func _handle_scan_input(pressed: bool) -> void:
+	if pressed:
+		if cooldown_left <= 0.0:
+			charging = true
+			hold_time = 0.0
+	else:
+		_release_pulse()
+		charging = false
 
 
 func _physics_process(delta: float) -> void:
@@ -104,6 +114,10 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= gravity * delta
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Gamepad left stick (joy 0).
+	input_dir.x += clampf(Input.get_joy_axis(0, 0), -1.0, 1.0)
+	input_dir.y -= clampf(Input.get_joy_axis(0, 1), -1.0, 1.0)
+	input_dir = input_dir.clamp(Vector2(-1, -1), Vector2(1, 1))
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
 		velocity.x = direction.x * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)

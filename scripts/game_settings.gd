@@ -4,10 +4,12 @@ extends Node
 var mouse_sensitivity := 0.002
 var master_volume := 0.8
 var fullscreen := false
+var scan_key := KEY_E          # remappable scan key (default E)
 var best_times := {}          # level index -> seconds
 var unlocked_levels := 1
 
 const SETTINGS_PATH := "user://lumen_null_settings.cfg"
+const JOY_SCAN_BUTTON := 2     # gamepad X / square button fires the scan
 
 
 func _ready() -> void:
@@ -34,6 +36,11 @@ func set_fullscreen(value: bool) -> void:
 	_save()
 
 
+func set_scan_key(value: int) -> void:
+	scan_key = value
+	_save()
+
+
 func _apply() -> void:
 	_apply_volume()
 	DisplayServer.window_set_mode(
@@ -54,6 +61,7 @@ func _load() -> void:
 	mouse_sensitivity = float(config.get_value("comfort", "mouse_sensitivity", mouse_sensitivity))
 	master_volume = float(config.get_value("comfort", "master_volume", master_volume))
 	fullscreen = bool(config.get_value("comfort", "fullscreen", fullscreen))
+	scan_key = int(config.get_value("comfort", "scan_key", scan_key))
 	unlocked_levels = int(config.get_value("records", "unlocked_levels", unlocked_levels))
 	if config.has_section("records"):
 		for key in config.get_section_keys("records"):
@@ -71,6 +79,7 @@ func _save() -> void:
 	config.set_value("comfort", "mouse_sensitivity", mouse_sensitivity)
 	config.set_value("comfort", "master_volume", master_volume)
 	config.set_value("comfort", "fullscreen", fullscreen)
+	config.set_value("comfort", "scan_key", scan_key)
 	config.set_value("records", "unlocked_levels", unlocked_levels)
 	for level in best_times:
 		config.set_value("records", "best_%d" % level, best_times[level])

@@ -16,6 +16,7 @@ var music: AudioStreamPlayer
 var dots: Array = []
 var time := 0.0
 var starting := false
+var _remap_callable: Callable
 
 
 func _ready() -> void:
@@ -199,6 +200,49 @@ func _build_settings() -> void:
 	settings_box.add_child(full)
 
 	_button(settings_box, "BACK", func(): _show(main_box))
+
+
+	var remapping := false
+	var scan_btn: Button
+
+	settings_box.add_child(_label("SCAN KEY"))
+	scan_btn = _button(settings_box, "SCAN KEY  //  %s" % _key_name(int(settings.get("scan_key"))), func(): _begin_scan_remap(scan_btn))
+	scan_btn.pressed.connect(func(): _begin_scan_remap(scan_btn))
+
+
+func _key_name(key: int) -> String:
+	var names := {
+		KEY_E: "E",
+		KEY_Q: "Q",
+		KEY_R: "R",
+		KEY_F: "F",
+		KEY_SPACE: "SPACE",
+		KEY_SHIFT: "SHIFT",
+		KEY_CTRL: "CTRL",
+		KEY_ALT: "ALT",
+	}
+	return names[key] if names.has(key) else "KEY %d" % key
+
+
+func _begin_scan_remap(btn: Button) -> void:
+	btn.text = "PRESS A KEY..."
+	_remap_callable = Callable(self, "_on_scan_remap_input").bind(btn)
+	get_tree().connect("input", _remap_callable)
+
+
+func _on_scan_remap_input(event: InputEvent, btn: Button) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE:
+			get_tree().disconnect("input", _remap_callable)
+			btn.text = "SCAN KEY  //  %s" % _key_name(int(settings.get("scan_key")))
+			return
+		get_tree().disconnect("input", _remap_callable)
+		var new_key: int = event.keycode
+		settings.call("set_scan_key", new_key)
+		btn.text = "SCAN KEY  //  %s" % _key_name(new_key)
+	elif event is InputEventJoypadButton and event.pressed:
+		get_tree().disconnect("input", _remap_callable)
+		btn.text = "SCAN KEY  //  GAMEPAD BTN %d" % event.button_index
 
 
 func _label(text: String) -> Label:
