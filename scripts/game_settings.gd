@@ -5,7 +5,9 @@ var mouse_sensitivity := 0.002
 var master_volume := 0.8
 var fullscreen := false
 var scan_key := KEY_E          # remappable scan key (default E)
-var best_times := {}          # level index -> seconds
+var difficulty := "normal"     # "normal" = minimap + standard, "hardcore" = no help
+var cleared_levels := []       # level indices the player has cleared at least once
+var best_times := {}           # level index -> seconds
 var unlocked_levels := 1
 
 const SETTINGS_PATH := "user://lumen_null_settings.cfg"
@@ -41,6 +43,19 @@ func set_scan_key(value: int) -> void:
 	_save()
 
 
+func set_difficulty(value: String) -> void:
+	difficulty = value
+	_save()
+
+
+func mark_cleared(level: int) -> void:
+	if not cleared_levels.has(level):
+		cleared_levels.append(level)
+		cleared_levels.sort_custom(func(a, b): return a < b)
+	unlocked_levels = maxi(unlocked_levels, level + 2)
+	_save()
+
+
 func _apply() -> void:
 	_apply_volume()
 	DisplayServer.window_set_mode(
@@ -62,6 +77,8 @@ func _load() -> void:
 	master_volume = float(config.get_value("comfort", "master_volume", master_volume))
 	fullscreen = bool(config.get_value("comfort", "fullscreen", fullscreen))
 	scan_key = int(config.get_value("comfort", "scan_key", scan_key))
+	difficulty = config.get_value("comfort", "difficulty", difficulty)
+	cleared_levels = config.get_value("records", "cleared_levels", [])
 	unlocked_levels = int(config.get_value("records", "unlocked_levels", unlocked_levels))
 	if config.has_section("records"):
 		for key in config.get_section_keys("records"):
@@ -80,6 +97,8 @@ func _save() -> void:
 	config.set_value("comfort", "master_volume", master_volume)
 	config.set_value("comfort", "fullscreen", fullscreen)
 	config.set_value("comfort", "scan_key", scan_key)
+	config.set_value("comfort", "difficulty", difficulty)
+	config.set_value("records", "cleared_levels", cleared_levels)
 	config.set_value("records", "unlocked_levels", unlocked_levels)
 	for level in best_times:
 		config.set_value("records", "best_%d" % level, best_times[level])

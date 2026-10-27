@@ -17,6 +17,8 @@ var dots: Array = []
 var time := 0.0
 var starting := false
 var _remap_callable: Callable
+var _pending_level := -1
+var _choosing_difficulty := false
 
 
 func _ready() -> void:
@@ -136,7 +138,7 @@ func _on_play() -> void:
 	var next := 0
 	if not (settings.best_times.is_empty() and settings.unlocked_levels <= 1):
 		next = mini(settings.unlocked_levels, LevelData.COUNT) - 1
-	_start_level(next)
+	_select_level(next)
 
 
 func _build_select() -> void:
@@ -161,8 +163,9 @@ func _refresh_levels() -> void:
 		if i < settings.unlocked_levels:
 			var best: float = settings.best_time(i)
 			var best_text := "BEST  %02d:%02d" % [int(best) / 60, int(best) % 60] if best > 0.0 else "NOT CLEARED"
-			b.text = "%d   //   %s\n%s     %s" % [i + 1, def["name"], def["tagline"], best_text]
-			b.pressed.connect(_start_level.bind(i))
+			var cleared_tag := "  [CLEARED]" if game.is_cleared(i) else ""
+			b.text = "%d   //   %s\n%s     %s%s" % [i + 1, def["name"], def["tagline"], best_text, cleared_tag]
+			b.pressed.connect(_select_level.bind(i))
 			if first == null:
 				first = b
 		else:
@@ -263,6 +266,63 @@ func _slider(lo: float, hi: float, step: float, value: float) -> HSlider:
 	return s
 
 
+var _difficulty_box: VBoxContainer = null
+
+
+func _select_level(index: int) -> void:
+	if not game.is_cleared(index):
+		_start_level(index)
+		return
+	_pending_level = index
+	_show_difficulty_selector()
+
+
+func _show_difficulty_selector() -> void:
+	_choosing_difficulty = true
+	var center := get_node("Control/Overlay/Center/VBox")
+	for c in center.get_children():
+		c.queue_free()
+	_difficulty_box = VBoxContainer.new()
+	_difficulty_box.add_theme_constant_override("separation", 16)
+	_difficulty_box.custom_minimum_size = Vector2(460, 0)
+	var title := Label.new()
+	title.text = "CHOOSE DIFFICULTY"
+	title.add_theme_font_size_override("font_size", 40)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_difficulty_box.add_child(title)
+	var normal := Button.new()
+	normal.text = "NORMAL  //  minimap + standard hunters"
+	normal.pressed.connect(func(): _confirm_difficulty("normal"))
+	_difficulty_box.add_child(normal)
+	var hardcore := Button.new()
+	hardcore.text = "HARDCORE  //  no minimap, tougher hunters"
+	hardcore.pressed.connect(func(): _confirm_difficulty("hardcore"))
+	_difficulty_box.add_child(hardcore)
+	center.add_child(_difficulty_box)
+	get_node("Control/Overlay").visible = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _confirm_difficulty(d: String) -> void:
+	game.set_difficulty(d)
+	_choosing_difficulty = false
+	if _difficulty_box != null:
+		_difficulty_box.queue_free()
+		_difficulty_box = null
+	get_node("Control/Overlay").visible = false
+	_start_level(_pending_level)
+	_pending_level = -1
+
+
+func _cancel_difficulty() -> void:
+	_choosing_difficulty = false
+	if _difficulty_box != null:
+		_difficulty_box.queue_free()
+		_difficulty_box = null
+	get_node("Control/Overlay").visible = false
+	_pending_level = -1
+
+
 func _start_level(index: int) -> void:
 	if starting:
 		return
@@ -275,5 +335,8 @@ func _start_level(index: int) -> void:
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		if _choosing_difficulty:
+			_cancel_difficulty()
+			return
 		if select_box.visible or settings_box.visible:
 			_show(main_box)

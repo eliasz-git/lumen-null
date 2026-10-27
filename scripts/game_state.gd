@@ -24,8 +24,11 @@ var has_key := false        # player has collected the key (key/door levels)
 var has_noise_item := false # player is carrying a noise distraction item
 var key_required := false   # level requires the key before the exit opens
 var doors: Array = []       # door instances awaiting the key
+var difficulty := "normal"  # "normal" = minimap + standard, "hardcore" = no help
+var cleared_levels := []    # level indices cleared at least once (unlocks difficulty selector)
 
 @onready var _player: Node3D
+@onready var settings: Node = get_node("/root/GameSettings")
 
 
 func _process(delta: float) -> void:
@@ -57,6 +60,7 @@ func win() -> void:
 		return
 	won = true
 	player_won.emit()
+	mark_cleared(current_level)
 	get_tree().paused = true
 
 
@@ -89,6 +93,22 @@ func stun_hunter_at(position: Vector3) -> void:
 			h.get_stunned()
 
 
+func set_difficulty(d: String) -> void:
+	difficulty = d
+	settings.call("set_difficulty", d)
+
+
+func mark_cleared(level: int) -> void:
+	if not cleared_levels.has(level):
+		cleared_levels.append(level)
+		cleared_levels.sort_custom(func(a, b): return a < b)
+	settings.call("mark_cleared", level)
+
+
+func is_cleared(level: int) -> bool:
+	return cleared_levels.has(level)
+
+
 func _reset_run() -> void:
 	alive = true
 	won = false
@@ -112,6 +132,9 @@ func restart() -> void:
 
 func start_level(index: int) -> void:
 	current_level = index
+	difficulty = "normal"
+	if settings.get("difficulty") != null:
+		difficulty = String(settings.get("difficulty"))
 	_reset_run()
 	get_tree().change_scene_to_file("res://scenes/level.tscn")
 
