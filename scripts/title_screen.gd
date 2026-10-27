@@ -4,6 +4,7 @@ extends Control
 const LevelData := preload("res://scripts/level_data.gd")
 const UITheme := preload("res://scripts/ui_theme.gd")
 const MUSIC_DB := -9.0
+const VERSION := "v0.2.0"
 
 var settings: Node
 var game: Node
@@ -51,6 +52,12 @@ func _ready() -> void:
 	sub.modulate = Color(1, 1, 1, 0.55)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(sub)
+	var ver := Label.new()
+	ver.text = VERSION
+	ver.add_theme_font_size_override("font_size", 14)
+	ver.modulate = Color(1, 1, 1, 0.35)
+	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(ver)
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 28)
 	column.add_child(gap)

@@ -203,7 +203,7 @@ func _draw_minimap() -> void:
 	var scanner := get_tree().get_first_node_in_group("scanner")
 	if scanner == null:
 		return
-	var cells := scanner.get_scanned_cells()
+	var cells: Dictionary = scanner.get_scanned_cells()
 	var contents := minimap.get_node("MinimapContents")
 	# Clear previous drawings
 	for c in contents.get_children():
@@ -218,8 +218,8 @@ func _draw_minimap() -> void:
 	var pcz := floori(plz + 18)
 	# Draw scanned cells
 	for cell in cells.keys():
-		var cx := cell.x
-		var cz := cell.y
+		var cx: int = cell.x
+		var cz: int = cell.y
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
 		dot.color = Color(1, 1, 1, 0.5)
