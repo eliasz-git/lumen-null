@@ -40,6 +40,8 @@ func _ready() -> void:
 	add_child(ping_sound)
 	death_sound = AudioStreamPlayer.new()
 	death_sound.stream = load("res://sounds/death.wav")
+	# Death pauses the tree; a pausable player would be silenced immediately.
+	death_sound.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(death_sound)
 	pulse_charge_sound = AudioStreamPlayer.new()
 	pulse_charge_sound.stream = load("res://sounds/ping.wav")
@@ -53,6 +55,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
+	# E released while paused (pause menu, tooltip) never reaches _input: cancel the charge.
+	if charging and not Input.is_key_pressed(KEY_E):
+		charging = false
+		hold_time = 0.0
 	if cooldown_left > 0.0:
 		cooldown_left -= delta
 		game.set_cooldown(cooldown_left, scan_cooldown)
