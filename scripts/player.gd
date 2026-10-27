@@ -22,6 +22,7 @@ var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravi
 var charging := false
 var hold_time := 0.0
 var cooldown_left := 0.0
+var current_cooldown := 1.6
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
@@ -61,7 +62,7 @@ func _process(delta: float) -> void:
 		hold_time = 0.0
 	if cooldown_left > 0.0:
 		cooldown_left -= delta
-		game.set_cooldown(cooldown_left, scan_cooldown)
+		game.set_cooldown(cooldown_left, current_cooldown)
 	if not was_ping_ready and cooldown_left <= 0.0 and ping_sound and not charging:
 		ping_sound.volume_db = -16.0
 		ping_sound.pitch_scale = 1.55
@@ -152,8 +153,10 @@ func _release_pulse() -> void:
 		ping_sound.volume_db = 0.0
 		ping_sound.pitch_scale = 1.0
 		ping_sound.play()
-	cooldown_left = scan_cooldown
-	game.set_cooldown(cooldown_left, scan_cooldown)
+	# A quick tap recharges faster; a full charge takes the level's whole scan_cooldown.
+	current_cooldown = scan_cooldown * lerpf(0.6, 1.0, t)
+	cooldown_left = current_cooldown
+	game.set_cooldown(cooldown_left, current_cooldown)
 	charging = false
 	hold_time = 0.0
 	# Tell the hunter the player pinged (unless suppressed during tutorial).
