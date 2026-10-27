@@ -18,6 +18,9 @@ extends CharacterBody3D
 @onready var game: Node = get_node("/root/GameState")
 @onready var settings: Node = get_node("/root/GameSettings")
 
+const NOISE_ITEM := preload("res://scenes/noise_item.tscn")
+const NOISE_EMITTER := preload("res://scenes/noise_emitter.tscn")
+
 var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var charging := false
 var hold_time := 0.0
@@ -25,6 +28,7 @@ var cooldown_left := 0.0
 var current_cooldown := 1.6
 var scan_key: int = KEY_E
 var joy_scan_button: int = 2
+var has_noise_item := false
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
@@ -97,6 +101,20 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventJoypadButton and event.device == 0:
 		if event.button_index == joy_scan_button:
 			_handle_scan_input(event.pressed)
+	if event is InputEventKey and not event.echo and event.pressed:
+		if event.keycode == KEY_V and has_noise_item:
+			_drop_noise_item()
+
+
+func _drop_noise_item() -> void:
+	if not has_noise_item:
+		return
+	var emitter: Node3D = NOISE_EMITTER.instantiate()
+	emitter.global_position = global_position
+	get_tree().get_first_node_in_group("level").add_child(emitter)
+	emitter.connect("noise_made", Callable(game, "hear_noise"))
+	has_noise_item = false
+	game.set_has_noise_item(false)
 
 
 func _handle_scan_input(pressed: bool) -> void:

@@ -9,12 +9,14 @@ const KEY := preload("res://scenes/key.tscn")
 const DOOR := preload("res://scenes/door.tscn")
 const SCAN_LIGHT := preload("res://scenes/scan_light.tscn")
 const SCAN_DOOR := preload("res://scenes/scan_door.tscn")
+const NOISE_ITEM := preload("res://scenes/noise_item.tscn")
 const HALF := 18
 
 @onready var game: Node = get_node("/root/GameState")
 
 
 func _ready() -> void:
+	add_to_group("level")
 	var def: Dictionary = LevelData.get_level(game.current_level)
 	game.level_def = def
 	var map: Array = def["map"]
@@ -69,6 +71,11 @@ func _ready() -> void:
 		sdoor.position = _cell_pos(marks["&"]) + Vector3(0, 0.2, 0)
 		game.register_door(sdoor)
 		add_child(sdoor)
+	if marks.has("!"):
+		var item: Area3D = NOISE_ITEM.instantiate()
+		item.position = _cell_pos(marks["!"]) + Vector3(0, 0.2, 0)
+		item.connect("picked_up", Callable(game, "set_has_noise_item").bind(true))
+		add_child(item)
 
 
 func _cell_pos(cell: Vector2i) -> Vector3:

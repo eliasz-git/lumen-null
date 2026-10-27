@@ -21,6 +21,7 @@ var cooldown_total := 1.6
 var charge := -1.0          # 0..1 while charging, -1 otherwise
 var elapsed := 0.0          # run time, excludes paused time
 var has_key := false        # player has collected the key (key/door levels)
+var has_noise_item := false # player is carrying a noise distraction item
 var key_required := false   # level requires the key before the exit opens
 var doors: Array = []       # door instances awaiting the key
 
@@ -72,10 +73,21 @@ func collect_key() -> void:
 	doors.clear()
 
 
+func set_has_noise_item(value: bool) -> void:
+	has_noise_item = value
+
+
+func hear_noise(position: Vector3) -> void:
+	for h in get_tree().get_group("hunter"):
+		if h.has_method("hear_ping"):
+			h.hear_ping(position)
+
+
 func _reset_run() -> void:
 	alive = true
 	won = false
 	has_key = false
+	has_noise_item = false
 	key_required = false
 	hunter_suppressed = false
 	cooldown_left = 0.0

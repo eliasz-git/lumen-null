@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[sub_resource type="SphereMesh" id="sphere_mesh"]
+radius = 0.35
+
+[sub_resource type="SphereShape3D" id="sphere_shape"]
+radius = 0.35
+
+[node name="NoiseItem" type="Area3D"]
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("sphere_mesh")
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+shape = SubResource("sphere_shape")
