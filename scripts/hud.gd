@@ -52,8 +52,18 @@ func _ready() -> void:
 
 func _apply_ui_scale() -> void:
 	ui_scale = clampf(float(settings.get("ui_scale")), 0.75, 2.0)
-	# Scale the whole HUD canvas
-	set_scale(Vector2(ui_scale, ui_scale))
+	# Scale individual UI element sizes, not the CanvasLayer (which would zoom
+	# into the top-left corner). Font sizes authored in .tscn stay as-is.
+	_scale_node_sizes(get_node("Control"), ui_scale)
+
+
+func _scale_node_sizes(node: Node, scale: float) -> void:
+	if node is Control:
+		var c := node as Control
+		if c.custom_minimum_size.x > 0 or c.custom_minimum_size.y > 0:
+			c.custom_minimum_size = c.custom_minimum_size * scale
+	for child in node.get_children():
+		_scale_node_sizes(child, scale)
 
 
 func _process(_delta: float) -> void:

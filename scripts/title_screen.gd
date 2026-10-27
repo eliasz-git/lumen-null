@@ -4,7 +4,7 @@ extends Control
 const LevelData := preload("res://scripts/level_data.gd")
 const UITheme := preload("res://scripts/ui_theme.gd")
 const MUSIC_DB := -9.0
-const VERSION := "v0.3.0"
+const VERSION := "v0.4.1"
 
 var settings: Node
 var game: Node
@@ -79,6 +79,8 @@ func _ready() -> void:
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 28)
 	column.add_child(gap)
+
+	_apply_ui_scale()
 
 	main_box = _panel(column)
 	select_box = _panel(column)
@@ -242,6 +244,7 @@ func _build_settings() -> void:
 	settings_box.add_child(_label("UI SCALE"))
 	var uiscale := _slider(0.75, 2.0, 0.25, float(settings.get("ui_scale")))
 	uiscale.value_changed.connect(func(v): settings.call("set_ui_scale", v))
+	uiscale.value_changed.connect(func(v): _apply_ui_scale())
 	settings_box.add_child(uiscale)
 
 	_button(settings_box, "BACK", func(): _show(main_box))
@@ -475,6 +478,20 @@ func _download_update() -> void:
 	update_status.text = "Downloading update..."
 	var headers := ["User-Agent: LUMEN NULL updater"]
 	update_request.request(update_asset_url, headers, HTTPClient.METHOD_GET)
+
+
+func _apply_ui_scale() -> void:
+	var scale := clampf(float(settings.get("ui_scale")), 0.75, 2.0)
+	_scale_sizes(self, scale)
+
+
+func _scale_sizes(node: Node, scale: float) -> void:
+	if node is Control:
+		var c := node as Control
+		if c.custom_minimum_size.x > 0 or c.custom_minimum_size.y > 0:
+			c.custom_minimum_size = c.custom_minimum_size * scale
+	for child in node.get_children():
+		_scale_sizes(child, scale)
 
 
 func _start_level(index: int) -> void:
