@@ -11,10 +11,10 @@ var ready_ok := false
 
 func _ready() -> void:
 	add_to_group("nav")
-	_build.call_deferred()
+	build_nav.call_deferred()
 
 
-func _build() -> void:
+func build_nav() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -40,6 +40,11 @@ func _build() -> void:
 			if not space.intersect_shape(query, 1).is_empty():
 				astar.set_point_solid(Vector2i(x, z), true)
 	ready_ok = true
+
+
+func rebuild() -> void:
+	ready_ok = false
+	build_nav.call_deferred()
 
 
 func _cell(v: Vector3) -> Vector2i:

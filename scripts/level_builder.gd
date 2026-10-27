@@ -67,6 +67,7 @@ func _ready() -> void:
 	if marks.has("&"):
 		var sdoor: Node3D = SCAN_DOOR.instantiate()
 		sdoor.position = _cell_pos(marks["&"]) + Vector3(0, 0.2, 0)
+		game.register_door(sdoor)
 		add_child(sdoor)
 
 

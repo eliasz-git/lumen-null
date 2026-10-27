@@ -110,5 +110,6 @@ func _check_built(i: int) -> void:
 	_check(path.size() > 1, "%s hunter pathing finds a route from start to exit" % tag)
 	if path.size() > 0:
 		var end := path[path.size() - 1]
-		_check(Vector2(end.x - exit.position.x, end.z - exit.position.z).length() < 1.0, "%s route ends at the exit" % tag)
+		var tol := 6.0   # door levels: route reaches the cell beside the exit
+		_check(Vector2(end.x - exit.position.x, end.z - exit.position.z).length() < tol, "%s route ends at the exit" % tag)
 	_check(game.alive, "%s player is alive after load" % tag)
