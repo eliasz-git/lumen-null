@@ -21,6 +21,7 @@ const ACK_GUARD_MS := 450
 @onready var tooltip_title: Label = $Control/Tooltip/TooltipBox/TooltipTitle
 @onready var tooltip_text: Label = $Control/Tooltip/TooltipBox/TooltipText
 @onready var tooltip_hint: Label = $Control/Tooltip/TooltipBox/TooltipHint
+@onready var minimap: Control = $Control/Minimap
 
 var tooltip_shown_at := 0
 var menu: VBoxContainer
@@ -42,11 +43,13 @@ func _ready() -> void:
 	overlay_hint.get_parent().add_child(menu)
 	game.player_died.connect(_on_player_died)
 	game.player_won.connect(_on_player_won)
+	_setup_minimap()
 
 
 func _process(_delta: float) -> void:
 	if overlay.visible or tooltip.visible:
 		return
+	_draw_minimap()
 	if game.charge >= 0.0:
 		meter.max_value = 1.0
 		meter.value = game.charge
@@ -184,3 +187,47 @@ func _fmt(t: float) -> String:
 	if t <= 0.0:
 		return "--:--"
 	return "%02d:%02d" % [int(t) / 60, int(t) % 60]
+
+
+func _setup_minimap() -> void:
+	var scanner := get_tree().get_first_node_in_group("scanner")
+	var show := scanner != null and scanner.is_cell_scanned != null
+	# Minimap only on Normal difficulty
+	show = show and game.difficulty != "hardcore"
+	minimap.visible = show
+
+
+func _draw_minimap() -> void:
+	if not minimap.visible:
+		return
+	var scanner := get_tree().get_first_node_in_group("scanner")
+	if scanner == null:
+		return
+	var cells := scanner.get_scanned_cells()
+	var contents := minimap.get_node("MinimapContents")
+	# Clear previous drawings
+	for c in contents.get_children():
+		c.queue_free()
+	if cells.is_empty():
+		return
+	var cell_size := 160.0 / 36.0
+	var player: Node3D = game._player
+	var plx := player.global_position.x
+	var plz := player.global_position.z
+	var pcx := floori(plx + 18)
+	var pcz := floori(plz + 18)
+	# Draw scanned cells
+	for cell in cells.keys():
+		var cx := cell.x
+		var cz := cell.y
+		var dot := ColorRect.new()
+		dot.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
+		dot.color = Color(1, 1, 1, 0.5)
+		contents.add_child(dot)
+		dot.position = Vector2((cx - pcx) * cell_size + 80.0 - cell_size * 0.5, (cz - pcz) * cell_size + 80.0 - cell_size * 0.5)
+	# Draw player marker
+	var pl := ColorRect.new()
+	pl.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
+	pl.color = Color(0, 1, 0, 1)
+	contents.add_child(pl)
+	pl.position = Vector2(80.0 - cell_size * 0.5, 80.0 - cell_size * 0.5)

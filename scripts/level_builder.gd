@@ -17,6 +17,9 @@ const HALF := 18
 
 func _ready() -> void:
 	add_to_group("level")
+	var scanner := get_tree().get_first_node_in_group("scanner")
+	if scanner != null:
+		scanner.clear_map()
 	var def: Dictionary = LevelData.get_level(game.current_level)
 	game.level_def = def
 	var map: Array = def["map"]
@@ -36,8 +39,15 @@ func _ready() -> void:
 	player.scan_cooldown = scan_cooldown
 	game.cooldown_total = scan_cooldown
 	var cam: Camera3D = player.get_node("Head/Camera3D")
-	cam.dot_lifetime = def["dot_lifetime"]
-	cam.material.set_shader_parameter("lifetime", float(def["dot_lifetime"]))
+	var dot_lifetime: float = float(def["dot_lifetime"])
+	if game.difficulty == "hardcore":
+		dot_lifetime *= 0.75   # dots fade faster in hardcore
+	cam.dot_lifetime = dot_lifetime
+	cam.material.set_shader_parameter("lifetime", dot_lifetime)
+
+	var hunt_speed := float(def["hunter_speed"])
+	if game.difficulty == "hardcore":
+		hunt_speed *= 1.25   # hunters move faster in hardcore
 
 	for h in def["hunters"]:
 		var hunter: CharacterBody3D = HUNTER.instantiate()
@@ -46,7 +56,7 @@ func _ready() -> void:
 		for ch in String(h["patrol"]):
 			pts.append(_cell_pos(marks[ch]))
 		hunter.patrol_points = pts
-		hunter.speed_scale = def["hunter_speed"]
+		hunter.speed_scale = hunt_speed
 		hunter.chase_radius = def["chase_radius"]
 		hunter.noise_radius = def["noise_radius"]
 		$Enemies.add_child(hunter)

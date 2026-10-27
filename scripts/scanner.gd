@@ -18,6 +18,8 @@ var elapsed := 0.0
 var material: ShaderMaterial
 var exclude_rids: Array[RID] = []
 var last_kind_hits := [0, 0, 0]   # world, hunter, exit gate (last scan)
+var scanned_cells := {}           # grid cell -> true, for the minimap (normal difficulty)
+const MAP_HALF := 18              # level is 36x36, centered at 0
 
 signal scan_fired(origin: Vector3, forward: Vector3, hit_count: int)
 signal strong_pulse_at(position: Vector3)
@@ -95,6 +97,10 @@ func scan(charge: float = 1.0) -> int:
 		var nd := clampf(dist / max_range, 0.0, 1.0)
 		var kind := 0.0
 		var collider: Object = result.collider
+		var cell_x := floori(pos.x + MAP_HALF)
+		var cell_z := floori(pos.z + MAP_HALF)
+		if cell_x >= 0 and cell_x < 36 and cell_z >= 0 and cell_z < 36:
+			scanned_cells[Vector2i(cell_x, cell_z)] = true
 		if collider is Node:
 			if (collider as Node).is_in_group("hunter"):
 				kind = 1.0
@@ -151,3 +157,15 @@ func _add_dot(pos: Vector3, normal: Vector3, dist: float, nd: float, kind: float
 		multimesh.set_instance_custom_data(write_index, Color(nd, kind, elapsed, 1.0))
 		write_index = (write_index + 1) % max_points
 		filled = mini(filled + 1, max_points)
+
+
+func clear_map() -> void:
+	scanned_cells.clear()
+
+
+func get_scanned_cells() -> Dictionary:
+	return scanned_cells
+
+
+func is_cell_scanned(x: int, z: int) -> bool:
+	return scanned_cells.has(Vector2i(x, z))
