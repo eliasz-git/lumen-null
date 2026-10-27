@@ -23,7 +23,7 @@ const ACK_GUARD_MS := 450
 @onready var tooltip_hint: Label = $Control/Tooltip/TooltipBox/TooltipHint
 @onready var minimap: Control = $Control/Minimap
 @onready var compass: Control = $Control/Compass
-@onready var compass_needle: Sprite2D = $Control/Compass/Needle
+@onready var compass_needle: Sprite2D = $Control/Compass/CompassNeedle
 
 var tooltip_shown_at := 0
 var ui_scale := 1.0
@@ -228,21 +228,29 @@ func _draw_minimap() -> void:
 	var plz := player.global_position.z
 	var pcx := floori(plx + 18)
 	var pcz := floori(plz + 18)
-	# Draw scanned cells
+	# Draw scanned cells (faded by distance from player center)
 	for cell in cells.keys():
 		var cx: int = cell.x
 		var cz: int = cell.y
 		var dot := ColorRect.new()
 		dot.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
-		dot.color = Color(1, 1, 1, 0.5)
+		dot.color = Color(0.6, 0.8, 1.0, 0.35)
 		contents.add_child(dot)
 		dot.position = Vector2((cx - pcx) * cell_size + 80.0 - cell_size * 0.5, (cz - pcz) * cell_size + 80.0 - cell_size * 0.5)
-	# Draw player marker
+	# Draw player marker (green dot)
 	var pl := ColorRect.new()
-	pl.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
+	pl.custom_minimum_size = Vector2(cell_size - 0.5, cell_size - 0.5)
 	pl.color = Color(0, 1, 0, 1)
 	contents.add_child(pl)
 	pl.position = Vector2(80.0 - cell_size * 0.5, 80.0 - cell_size * 0.5)
+	# Draw player direction indicator (small yellow dot ahead of player)
+	var dir_len := cell_size * 0.5
+	var dir := Vector2(-sin(player.rotation.y), -cos(player.rotation.y)).normalized()
+	var dir_dot := ColorRect.new()
+	dir_dot.custom_minimum_size = Vector2(3.0, 3.0)
+	dir_dot.color = Color(1, 1, 0, 1)
+	contents.add_child(dir_dot)
+	dir_dot.position = Vector2(80.0 + dir.x * dir_len - 1.5, 80.0 + dir.y * dir_len - 1.5)
 
 
 func _draw_compass() -> void:
