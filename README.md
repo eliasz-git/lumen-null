@@ -29,7 +29,7 @@ godot --path .
 
 Or open the Godot project manager, import `project.godot`, and press Play
 (F5). There is no build step; Godot runs the project from source. Exported
-builds are published as GitHub release v0.1.0:
+builds are published as GitHub release v0.4.0:
 github.com/tundra-node/lumen-null/releases
 
 ## Checks
@@ -57,18 +57,37 @@ runs both on every push (`.github/workflows/checks.yml`).
 | Esc | skip the tutorial; otherwise pause |
 | R | restart the level |
 | N / M | next level / main menu (finish and pause menus) |
+| V | drop noise distraction item (when carrying one) |
 
 ## Levels
 
 | # | Name | What is harder |
 |---|------|----------------|
-| 1 | THE SIGNAL | Tutorial. One hunter, which ignores your practice scan. 1.6 s recharge, 6 s dots. |
-| 2 | CROSSING | Zig-zag corridors, one slightly faster hunter, 1.7 s recharge, 5.5 s dots. |
+| 1 | THE SIGNAL | Tutorial. One hunter, which ignores your practice scan. 1.4 s recharge, 7 s dots. |
+| 2 | CROSSING | Zig-zag corridors, one slightly faster hunter, 1.8 s recharge, 5 s dots. |
 | 3 | TWINS | A 3x3 grid of rooms, two faster hunters that notice you from farther away. 2.1 s recharge, 4.5 s dots. |
 | 4 | BLACKOUT | A braided maze, three hunters, 2.4 s recharge, dots that fade in 3.5 s. |
+| 5 | THE KEY | Find the key to open the door to the exit. One hunter, 2.0 s recharge, 4.5 s dots. |
+| 6 | STATIC | Scan-reactive doors and lights. One hunter, 2.2 s recharge, 3 s dots. |
 
 Recharge times are for a full charge. Clearing a level unlocks the next and saves your best time. The finish menu
 offers next level, replay, level select and main menu.
+
+## Difficulty
+
+Choose Easy, Normal, or Hard from the title screen settings (or the difficulty selector when replaying a cleared level):
+
+| Difficulty | Minimap | Compass | Hunters | Dots fade |
+|------------|---------|---------|---------|-----------|
+| Easy | yes | yes | standard speed | normal |
+| Normal | no | yes | standard speed | normal |
+| Hard | no | no | 25% faster | 25% faster |
+
+## HUD
+
+- **Minimap** (Easy only): bottom-left radar showing scanned cells and your position.
+- **Compass** (Easy and Normal): top-center red needle showing your facing direction.
+- **UI Scale**: settings slider from 0.75x to 2.0x; scales the entire HUD.
 
 ## How it plays
 
@@ -102,6 +121,10 @@ Levels are data. Add an entry to `LEVELS` in `scripts/level_data.gd`, and bump
 | `E` | exit gate |
 | `1` to `3` | hunter spawn points |
 | `a` to `l` | patrol waypoints |
+| `K` | key pickup |
+| `D` | key door (blocks exit until key collected) |
+| `L` | scan-reactive light |
+| `&` | scan-reactive door |
 
 Each entry also sets `name`, `tagline`, `scan_cooldown`, `dot_lifetime`,
 `hunter_speed` (multiplier), `chase_radius`, `noise_radius`, and a `hunters`
@@ -120,32 +143,40 @@ scenes/
   enemy.tscn           - the hunter (procedural model, see hunter_model.gd)
   exit_beacon.tscn     - the exit gate
   wall.tscn            - a 2x4x2 wall block, scaled by the builder
-  hud.tscn             - vignette, reticle, meter, tooltips (hud.gd builds the menus)
+  hud.tscn             - vignette, reticle, meter, tooltips, minimap, compass (hud.gd builds the menus)
   title_screen.tscn    - the title screen (built in title_screen.gd)
+  key.tscn             - key pickup
+  door.tscn            - key door
+  scan_light.tscn      - scan-reactive light
+  scan_door.tscn       - scan-reactive door
+  noise_item.tscn      - noise distraction pickup
+  noise_emitter.tscn   - noise distraction emitter
 scripts/
   game_state.gd        - autoload: current level, win/lose, run timer, scene changes
-  game_settings.gd     - autoload: sensitivity, volume, fullscreen, unlocks, best times
-  level_data.gd        - the four levels: ASCII maps and difficulty
+  game_settings.gd     - autoload: sensitivity, volume, fullscreen, difficulty, ui_scale, unlocks, best times
+  level_data.gd        - the six levels: ASCII maps and difficulty
   level_builder.gd     - builds walls, hunters, start and exit from a map
   level_director.gd    - tutorial (level 1) or level intro banner
-  player.gd            - movement, footsteps, charge-and-release scan
-  scanner.gd           - cone raycast lidar, fading point-cloud MultiMesh
-  enemy.gd             - hunter state machine and senses
+  player.gd            - movement, footsteps, charge-and-release scan, noise item drop
+  scanner.gd           - cone raycast lidar, fading point-cloud MultiMesh, scanned-cell map
+  enemy.gd             - hunter state machine and senses, stun state
   hunter_model.gd      - gaunt animated figure whose parts are scannable bodies
   nav_grid.gd          - A* grid built from level collision, for hunter pathing
-  hud.gd, title_screen.gd, ui_theme.gd   - UI
+  hud.gd, title_screen.gd, ui_theme.gd   - UI, minimap, compass, auto-updater
   exit_beacon.gd, ambience.gd, enemy_spawner.gd, win_zone.gd
+  noise_item.gd, noise_emitter.gd   - noise distraction pickup and emitter
 shaders/               - lidar_points (dots), vignette
 materials/             - the two shader materials
 sounds/                - ping, death, heartbeat, plus generated footsteps, drone, alert, menu music
 tests/test_levels.gd   - headless level checks
 docs/                  - README screenshots (ignored by Godot)
 ROADMAP.md             - what is done and what is next
+build_release.sh       - one-command build, package, and GitHub release script
 ```
 
 ## Settings and saves
 
-Mouse sensitivity, volume, fullscreen, unlocked levels and best times are saved
+Mouse sensitivity, volume, fullscreen, scan key, difficulty, ui_scale, unlocked levels and best times are saved
 to `user://lumen_null_settings.cfg` (on macOS:
 `~/Library/Application Support/Godot/app_userdata/LUMEN NULL/`). Delete that
 file to reset progress.
