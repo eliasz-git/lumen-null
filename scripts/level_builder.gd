@@ -7,6 +7,8 @@ const WALL := preload("res://scenes/wall.tscn")
 const HUNTER := preload("res://scenes/enemy.tscn")
 const KEY := preload("res://scenes/key.tscn")
 const DOOR := preload("res://scenes/door.tscn")
+const SCAN_LIGHT := preload("res://scenes/scan_light.tscn")
+const SCAN_DOOR := preload("res://scenes/scan_door.tscn")
 const HALF := 18
 
 @onready var game: Node = get_node("/root/GameState")
@@ -58,6 +60,14 @@ func _ready() -> void:
 		game.register_door(door)
 		game.key_required = true
 		add_child(door)
+	if marks.has("L"):
+		var light: Node3D = SCAN_LIGHT.instantiate()
+		light.position = _cell_pos(marks["L"]) + Vector3(0, 1.7, 0)
+		add_child(light)
+	if marks.has("&"):
+		var sdoor: Node3D = SCAN_DOOR.instantiate()
+		sdoor.position = _cell_pos(marks["&"]) + Vector3(0, 0.2, 0)
+		add_child(sdoor)
 
 
 func _cell_pos(cell: Vector2i) -> Vector3:

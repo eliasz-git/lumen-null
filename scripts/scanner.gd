@@ -98,6 +98,8 @@ func scan() -> int:
 				kind = 1.0
 			elif (collider as Node).is_in_group("beacon"):
 				kind = 2.0
+			if (collider as Node).has_method("on_scan"):
+				(collider as Node).on_scan()
 
 		_add_dot(pos, normal, dist, nd, kind, 2 if kind == 1.0 else 1)
 		last_kind_hits[int(kind)] += 1
