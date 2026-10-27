@@ -22,8 +22,11 @@ const ACK_GUARD_MS := 450
 @onready var tooltip_text: Label = $Control/Tooltip/TooltipBox/TooltipText
 @onready var tooltip_hint: Label = $Control/Tooltip/TooltipBox/TooltipHint
 @onready var minimap: Control = $Control/Minimap
+@onready var compass: Control = $Control/Compass
+@onready var compass_needle: Sprite2D = $Control/Compass/Needle
 
 var tooltip_shown_at := 0
+var ui_scale := 1.0
 var menu: VBoxContainer
 var pause_open := false
 var can_go_next := false
@@ -44,12 +47,20 @@ func _ready() -> void:
 	game.player_died.connect(_on_player_died)
 	game.player_won.connect(_on_player_won)
 	_setup_minimap()
+	_apply_ui_scale()
+
+
+func _apply_ui_scale() -> void:
+	ui_scale = clampf(float(settings.get("ui_scale")), 0.75, 2.0)
+	# Scale the whole HUD canvas
+	set_scale(Vector2(ui_scale, ui_scale))
 
 
 func _process(_delta: float) -> void:
 	if overlay.visible or tooltip.visible:
 		return
 	_draw_minimap()
+	_draw_compass()
 	if game.charge >= 0.0:
 		meter.max_value = 1.0
 		meter.value = game.charge
@@ -191,10 +202,11 @@ func _fmt(t: float) -> String:
 
 func _setup_minimap() -> void:
 	var scanner := get_tree().get_first_node_in_group("scanner")
-	var show := scanner != null and scanner.is_cell_scanned != null
-	# Minimap only on Normal difficulty
-	show = show and game.difficulty != "hardcore"
-	minimap.visible = show
+	var has_scanner := scanner != null and scanner.is_cell_scanned != null
+	# Minimap only on Easy difficulty
+	minimap.visible = has_scanner and game.difficulty == "easy"
+	# Compass on Easy and Normal
+	compass.visible = game.difficulty == "easy" or game.difficulty == "normal"
 
 
 func _draw_minimap() -> void:
@@ -231,3 +243,14 @@ func _draw_minimap() -> void:
 	pl.color = Color(0, 1, 0, 1)
 	contents.add_child(pl)
 	pl.position = Vector2(80.0 - cell_size * 0.5, 80.0 - cell_size * 0.5)
+
+
+func _draw_compass() -> void:
+	if not compass.visible:
+		return
+	var player: Node3D = game._player
+	if player == null:
+		return
+	var yaw := -player.rotation.y
+	var needle_rot := yaw + PI / 2.0
+	compass_needle.rotation = needle_rot

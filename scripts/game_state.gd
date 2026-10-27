@@ -24,7 +24,7 @@ var has_key := false        # player has collected the key (key/door levels)
 var has_noise_item := false # player is carrying a noise distraction item
 var key_required := false   # level requires the key before the exit opens
 var doors: Array = []       # door instances awaiting the key
-var difficulty := "normal"  # "normal" = minimap + standard, "hardcore" = no help
+var difficulty := "normal"  # "easy" = minimap + compass, "normal" = compass, "hard" = nothing
 var cleared_levels := []    # level indices cleared at least once (unlocks difficulty selector)
 
 @onready var _player: Node3D

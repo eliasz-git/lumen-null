@@ -40,14 +40,14 @@ func _ready() -> void:
 	game.cooldown_total = scan_cooldown
 	var cam: Camera3D = player.get_node("Head/Camera3D")
 	var dot_lifetime: float = float(def["dot_lifetime"])
-	if game.difficulty == "hardcore":
-		dot_lifetime *= 0.75   # dots fade faster in hardcore
+	if game.difficulty == "hard":
+		dot_lifetime *= 0.75   # dots fade faster on hard
 	cam.dot_lifetime = dot_lifetime
 	cam.material.set_shader_parameter("lifetime", dot_lifetime)
 
 	var hunt_speed := float(def["hunter_speed"])
-	if game.difficulty == "hardcore":
-		hunt_speed *= 1.25   # hunters move faster in hardcore
+	if game.difficulty == "hard":
+		hunt_speed *= 1.25   # hunters move faster on hard
 
 	for h in def["hunters"]:
 		var hunter: CharacterBody3D = HUNTER.instantiate()

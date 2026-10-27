@@ -4,7 +4,7 @@ extends Control
 const LevelData := preload("res://scripts/level_data.gd")
 const UITheme := preload("res://scripts/ui_theme.gd")
 const MUSIC_DB := -9.0
-const VERSION := "v0.2.0"
+const VERSION := "v0.3.0"
 
 var settings: Node
 var game: Node
@@ -233,6 +233,17 @@ func _build_settings() -> void:
 	full.toggled.connect(func(v): settings.call("set_fullscreen", v))
 	settings_box.add_child(full)
 
+	settings_box.add_child(_label("DIFFICULTY"))
+	var diff_btn := Button.new()
+	diff_btn.text = "DIFFICULTY  //  %s" % String(settings.get("difficulty")).to_upper()
+	diff_btn.pressed.connect(func(): _toggle_difficulty(diff_btn))
+	settings_box.add_child(diff_btn)
+
+	settings_box.add_child(_label("UI SCALE"))
+	var uiscale := _slider(0.75, 2.0, 0.25, float(settings.get("ui_scale")))
+	uiscale.value_changed.connect(func(v): settings.call("set_ui_scale", v))
+	settings_box.add_child(uiscale)
+
 	_button(settings_box, "BACK", func(): _show(main_box))
 
 
@@ -242,6 +253,17 @@ func _build_settings() -> void:
 	settings_box.add_child(_label("SCAN KEY"))
 	scan_btn = _button(settings_box, "SCAN KEY  //  %s" % _key_name(int(settings.get("scan_key"))), func(): _begin_scan_remap(scan_btn))
 	scan_btn.pressed.connect(func(): _begin_scan_remap(scan_btn))
+
+
+func _toggle_difficulty(btn: Button) -> void:
+	var cur := String(settings.get("difficulty"))
+	var next := "easy"
+	if cur == "easy":
+		next = "normal"
+	elif cur == "normal":
+		next = "hard"
+	settings.call("set_difficulty", next)
+	btn.text = "DIFFICULTY  //  %s" % next.to_upper()
 
 
 func _key_name(key: int) -> String:
@@ -321,14 +343,18 @@ func _show_difficulty_selector() -> void:
 	title.add_theme_font_size_override("font_size", 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_difficulty_box.add_child(title)
+	var easy := Button.new()
+	easy.text = "EASY  //  minimap + compass"
+	easy.pressed.connect(func(): _confirm_difficulty("easy"))
+	_difficulty_box.add_child(easy)
 	var normal := Button.new()
-	normal.text = "NORMAL  //  minimap + standard hunters"
+	normal.text = "NORMAL  //  compass only"
 	normal.pressed.connect(func(): _confirm_difficulty("normal"))
 	_difficulty_box.add_child(normal)
-	var hardcore := Button.new()
-	hardcore.text = "HARDCORE  //  no minimap, tougher hunters"
-	hardcore.pressed.connect(func(): _confirm_difficulty("hardcore"))
-	_difficulty_box.add_child(hardcore)
+	var hard := Button.new()
+	hard.text = "HARD  //  no minimap, no compass, tougher hunters"
+	hard.pressed.connect(func(): _confirm_difficulty("hard"))
+	_difficulty_box.add_child(hard)
 	center.add_child(_difficulty_box)
 	get_node("Control/Overlay").visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)

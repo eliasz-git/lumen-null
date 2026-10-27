@@ -29,7 +29,6 @@ var current_cooldown := 1.6
 var scan_key: int = KEY_E
 var joy_scan_button: int = 2
 var has_noise_item := false
-var is_sprinting := false
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
@@ -140,11 +139,9 @@ func _physics_process(delta: float) -> void:
 	input_dir = input_dir.clamp(Vector2(-1, -1), Vector2(1, 1))
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
-		is_sprinting = Input.is_action_pressed("sprint")
-		velocity.x = direction.x * (sprint_speed if is_sprinting else move_speed)
-		velocity.z = direction.z * (sprint_speed if is_sprinting else move_speed)
+		velocity.x = direction.x * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
+		velocity.z = direction.z * (sprint_speed if Input.is_action_pressed("sprint") else move_speed)
 	else:
-		is_sprinting = Input.is_action_pressed("sprint")
 		velocity.x = move_toward(velocity.x, 0, 6.0)
 		velocity.z = move_toward(velocity.z, 0, 6.0)
 
@@ -161,8 +158,7 @@ func _physics_process(delta: float) -> void:
 
 
 func is_noisy() -> bool:
-	# Sprinting is loud even when standing still.
-	return is_on_floor() and (is_sprinting or Vector2(velocity.x, velocity.z).length() > move_speed + 0.5)
+	return is_on_floor() and Vector2(velocity.x, velocity.z).length() > move_speed + 0.5
 
 
 func _footsteps(delta: float) -> void:

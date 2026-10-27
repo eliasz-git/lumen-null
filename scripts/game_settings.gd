@@ -5,7 +5,8 @@ var mouse_sensitivity := 0.002
 var master_volume := 0.8
 var fullscreen := false
 var scan_key := KEY_E          # remappable scan key (default E)
-var difficulty := "normal"     # "normal" = minimap + standard, "hardcore" = no help
+var difficulty := "normal"     # "easy" = minimap + compass, "normal" = compass, "hard" = nothing
+var ui_scale := 1.0            # UI size multiplier (1.0 default, 1.5 bigger)
 var cleared_levels := []       # level indices the player has cleared at least once
 var best_times := {}           # level index -> seconds
 var unlocked_levels := 1
@@ -48,6 +49,11 @@ func set_difficulty(value: String) -> void:
 	_save()
 
 
+func set_ui_scale(value: float) -> void:
+	ui_scale = clampf(value, 0.75, 2.0)
+	_save()
+
+
 func mark_cleared(level: int) -> void:
 	if not cleared_levels.has(level):
 		cleared_levels.append(level)
@@ -78,6 +84,7 @@ func _load() -> void:
 	fullscreen = bool(config.get_value("comfort", "fullscreen", fullscreen))
 	scan_key = int(config.get_value("comfort", "scan_key", scan_key))
 	difficulty = config.get_value("comfort", "difficulty", difficulty)
+	ui_scale = float(config.get_value("comfort", "ui_scale", ui_scale))
 	cleared_levels = config.get_value("records", "cleared_levels", [])
 	unlocked_levels = int(config.get_value("records", "unlocked_levels", unlocked_levels))
 	if config.has_section("records"):
@@ -98,6 +105,7 @@ func _save() -> void:
 	config.set_value("comfort", "fullscreen", fullscreen)
 	config.set_value("comfort", "scan_key", scan_key)
 	config.set_value("comfort", "difficulty", difficulty)
+	config.set_value("comfort", "ui_scale", ui_scale)
 	config.set_value("records", "cleared_levels", cleared_levels)
 	config.set_value("records", "unlocked_levels", unlocked_levels)
 	for level in best_times:
