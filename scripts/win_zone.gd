@@ -11,4 +11,6 @@ func _ready() -> void:
 func _on_body_entered(body: Node3D) -> void:
 	# Ignore the goal platform's own collider; only the player wins.
 	if game._player and body == game._player:
+		if game.key_required and not game.has_key:
+			return
 		game.win()

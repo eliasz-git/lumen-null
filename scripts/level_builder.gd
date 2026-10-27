@@ -5,6 +5,8 @@ extends Node3D
 const LevelData := preload("res://scripts/level_data.gd")
 const WALL := preload("res://scenes/wall.tscn")
 const HUNTER := preload("res://scenes/enemy.tscn")
+const KEY := preload("res://scenes/key.tscn")
+const DOOR := preload("res://scenes/door.tscn")
 const HALF := 18
 
 @onready var game: Node = get_node("/root/GameState")
@@ -44,6 +46,18 @@ func _ready() -> void:
 		hunter.chase_radius = def["chase_radius"]
 		hunter.noise_radius = def["noise_radius"]
 		$Enemies.add_child(hunter)
+
+	if marks.has("K"):
+		var key: Area3D = KEY.instantiate()
+		key.position = _cell_pos(marks["K"]) + Vector3(0, 0.2, 0)
+		key.collected.connect(game.collect_key)
+		add_child(key)
+	if marks.has("D"):
+		var door: Node3D = DOOR.instantiate()
+		door.position = _cell_pos(marks["D"]) + Vector3(0, 0.2, 0)
+		game.register_door(door)
+		game.key_required = true
+		add_child(door)
 
 
 func _cell_pos(cell: Vector2i) -> Vector3:

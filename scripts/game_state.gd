@@ -20,6 +20,9 @@ var cooldown_left := 0.0
 var cooldown_total := 1.6
 var charge := -1.0          # 0..1 while charging, -1 otherwise
 var elapsed := 0.0          # run time, excludes paused time
+var has_key := false        # player has collected the key (key/door levels)
+var key_required := false   # level requires the key before the exit opens
+var doors: Array = []       # door instances awaiting the key
 
 @onready var _player: Node3D
 
@@ -56,15 +59,31 @@ func win() -> void:
 	get_tree().paused = true
 
 
+func register_door(door: Node3D) -> void:
+	doors.append(door)
+
+
+func collect_key() -> void:
+	if has_key:
+		return
+	has_key = true
+	for door in doors:
+		door.queue_free()
+	doors.clear()
+
+
 func _reset_run() -> void:
 	alive = true
 	won = false
+	has_key = false
+	key_required = false
 	hunter_suppressed = false
 	cooldown_left = 0.0
 	cooldown_total = 1.6
 	charge = -1.0
 	elapsed = 0.0
 	tutorial_active = false
+	doors.clear()
 	get_tree().paused = false
 
 
