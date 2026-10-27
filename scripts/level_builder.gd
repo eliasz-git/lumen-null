@@ -92,5 +92,17 @@ func _build_walls(parent: Node3D, map: Array) -> void:
 		var width: float = r[3] - r[2]
 		var depth: float = r[1] - r[0]
 		wall.position = Vector3((r[2] + r[3]) * 0.5 - HALF, 0.0, (r[0] + r[1]) * 0.5 - HALF)
-		wall.scale = Vector3(width * 0.5, 1.0, depth * 0.5)
+
+		# Scale the shape instead of the node (Godot recommendation; avoids
+		# scaling the collision/mesh transforms unevenly).
+		var mesh_instance: MeshInstance3D = wall.get_node("Mesh")
+		var mesh: BoxMesh = mesh_instance.mesh.duplicate() as BoxMesh
+		mesh.size = Vector3(width, 4.0, depth)
+		mesh_instance.mesh = mesh
+
+		var collision: CollisionShape3D = wall.get_node("CollisionShape3D")
+		var shape: BoxShape3D = collision.shape.duplicate() as BoxShape3D
+		shape.size = Vector3(width, 4.0, depth)
+		collision.shape = shape
+
 		parent.add_child(wall)
