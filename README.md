@@ -149,6 +149,10 @@ to `user://lumen_null_settings.cfg` (on macOS:
 `~/Library/Application Support/Godot/app_userdata/LUMEN NULL/`). Delete that
 file to reset progress.
 
+## AI usage
+
+Bug fixes, unit tests, and this README were written with help from an AI coding agent. The game design, all GDScript gameplay code, and every level were written by me.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
