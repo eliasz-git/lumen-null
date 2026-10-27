@@ -23,7 +23,8 @@ const ACK_GUARD_MS := 450
 @onready var tooltip_hint: Label = $Control/Tooltip/TooltipBox/TooltipHint
 @onready var minimap: Control = $Control/Minimap
 @onready var compass: Control = $Control/Compass
-@onready var compass_needle: Sprite2D = $Control/Compass/CompassNeedle
+@onready var center_marker: ColorRect = $Control/Compass/CenterMarker
+@onready var poi_icons: Control = $Control/Compass/POIIcons
 
 var tooltip_shown_at := 0
 var ui_scale := 1.0
@@ -282,21 +283,62 @@ func _draw_compass() -> void:
 	var player: Node3D = game._player
 	if player == null:
 		return
-	# Make sure the needle has a texture (generated once)
-	if compass_needle.texture == null:
-		_compass_needle_texture()
-	# Godot 2D rotation: 0 = right, PI/2 = down, PI = left, -PI/2 = up.
-	# Player rotation.y = 0 faces +Z (north). Needle should point up when facing north.
-	compass_needle.rotation = -PI / 2.0 + player.rotation.y
+	# Player forward angle in XZ plane (Godot default forward is -Z)
+	var forward_dir := (-player.global_transform.basis.z).normalized()
+	var forward_angle := atan2(forward_dir.x, forward_dir.z)
+	
+	var bar_width := compass.custom_minimum_size.x
+	var center_x := bar_width * 0.5
+	var scale := bar_width / (2.0 * PI)
+	
+	# Cardinal labels (fixed absolute directions, slide relative to facing)
+	var cardinals := {
+		"CompassN": Vector3(0, 0, -1),
+		"CompassE": Vector3(1, 0, 0),
+		"CompassS": Vector3(0, 0, 1),
+		"CompassW": Vector3(-1, 0, 0),
+	}
+	for label_name in cardinals.keys():
+		var label := compass.get_node(label_name)
+		var dir: Vector3 = cardinals[label_name]
+		var dir_angle := atan2(dir.x, dir.z)
+		var rel := _compass_norm(forward_angle - dir_angle)
+		var sx := center_x + rel * scale
+		label.position = Vector2(sx - 8.0, label.position.y)
+		var alpha := clampf(1.0 - abs(rel) / (PI * 0.7), 0.0, 1.0)
+		label.modulate = Color(1, 1, 1, alpha)
+	
+	# Clear old POI icons
+	for c in poi_icons.get_children():
+		c.queue_free()
+	
+	# Gather POIs: exit gate + hunters
+	var pois := []
+	var exit_beacon := get_tree().get_first_node_in_group("beacon")
+	if exit_beacon != null:
+		pois.append({"pos": exit_beacon.global_position, "color": Color(0, 1, 1, 1)})
+	for h in game.hunters:
+		if h is Node3D:
+			pois.append({"pos": h.global_position, "color": Color(1, 0.3, 0.3, 1)})
+	
+	for poi in pois:
+		var dir_to_poi: Vector3 = (poi["pos"] - player.global_position).normalized()
+		var dir_angle := atan2(dir_to_poi.x, dir_to_poi.z)
+		var rel := _compass_norm(forward_angle - dir_angle)
+		var sx := center_x + rel * scale
+		if abs(rel) > PI * 0.66:
+			continue
+		var icon := ColorRect.new()
+		icon.custom_minimum_size = Vector2(10, 10)
+		icon.color = poi["color"]
+		poi_icons.add_child(icon)
+		icon.position = Vector2(sx - 5.0, 8.0)
 
 
-func _compass_needle_texture() -> void:
-	# Generate a small vertical bar needle texture so the Sprite2D is visible.
-	var img := Image.create(8, 28, false, Image.FORMAT_RGBA8)
-	for x in range(8):
-		for y in range(28):
-			var a = 1.0 - abs(x - 3.5) / 4.0
-			a = clampf(a, 0.0, 1.0)
-			img.set_pixel(x, y, Color(1, 0.3, 0.3, 0.95 * a))
-	var tex := ImageTexture.create_from_image(img)
-	compass_needle.texture = tex
+func _compass_norm(a: float) -> float:
+	var result := a
+	while result > PI:
+		result -= 2.0 * PI
+	while result < -PI:
+		result += 2.0 * PI
+	return result

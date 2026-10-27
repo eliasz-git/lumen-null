@@ -26,6 +26,7 @@ var key_required := false   # level requires the key before the exit opens
 var doors: Array = []       # door instances awaiting the key
 var difficulty := "normal"  # "easy" = minimap + compass, "normal" = compass, "hard" = nothing
 var cleared_levels := []    # level indices cleared at least once (unlocks difficulty selector)
+var hunters: Array = []     # hunter instances registered by level_builder
 
 @onready var _player: Node3D
 @onready var settings: Node = get_node("/root/GameSettings")
@@ -66,6 +67,10 @@ func win() -> void:
 
 func register_door(door: Node3D) -> void:
 	doors.append(door)
+
+
+func register_hunter(hunter: Node3D) -> void:
+	hunters.append(hunter)
 
 
 func collect_key() -> void:
@@ -122,6 +127,7 @@ func _reset_run() -> void:
 	elapsed = 0.0
 	tutorial_active = false
 	doors.clear()
+	hunters.clear()
 	get_tree().paused = false
 
 

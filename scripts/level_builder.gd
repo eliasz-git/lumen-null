@@ -60,6 +60,7 @@ func _ready() -> void:
 		hunter.chase_radius = def["chase_radius"]
 		hunter.noise_radius = def["noise_radius"]
 		$Enemies.add_child(hunter)
+		game.register_hunter(hunter)
 
 	if marks.has("K"):
 		var key = KEY.instantiate()

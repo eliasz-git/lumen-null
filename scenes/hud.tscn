@@ -213,33 +213,34 @@ visible = false
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.0
-offset_left = -80.0
-offset_top = 16.0
-custom_minimum_size = Vector2(160, 40)
+offset_left = -250.0
+offset_top = 10.0
+custom_minimum_size = Vector2(500, 40)
 
-[node name="CompassRing" type="TextureRect" parent="Control/Compass"]
+[node name="CompassBar" type="ColorRect" parent="Control/Compass"]
 layout_mode = 3
 anchors_preset = 15
-expand_mode = 2
-stretch_mode = 2
-custom_minimum_size = Vector2(160, 40)
-color = Color(1, 1, 1, 0.25)
+color = Color(0, 0, 0, 0.4)
 
-[node name="CompassNeedle" type="Sprite2D" parent="Control/Compass"]
+[node name="CenterMarker" type="ColorRect" parent="Control/Compass"]
 layout_mode = 0
 anchor_left = 0.5
-anchor_top = 0.5
-offset_left = -4.0
-offset_top = -14.0
-custom_minimum_size = Vector2(8, 28)
-modulate = Color(1, 0.3, 0.3, 0.95)
+anchor_top = 0.0
+offset_left = -6.0
+offset_top = 4.0
+custom_minimum_size = Vector2(12, 16)
+color = Color(1, 1, 1, 0.9)
+
+[node name="POIIcons" type="Control" parent="Control/Compass"]
+layout_mode = 3
+anchors_preset = 15
 
 [node name="CompassN" type="Label" parent="Control/Compass"]
 layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.0
 offset_left = -8.0
-offset_top = 4.0
+offset_top = 24.0
 text = "N"
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 14
@@ -248,9 +249,9 @@ horizontal_alignment = 1
 [node name="CompassE" type="Label" parent="Control/Compass"]
 layout_mode = 0
 anchor_left = 1.0
-anchor_top = 0.5
+anchor_top = 0.0
 offset_left = -10.0
-offset_top = -8.0
+offset_top = 24.0
 text = "E"
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_font_sizes/font_size = 12
@@ -261,7 +262,7 @@ layout_mode = 0
 anchor_left = 0.5
 anchor_top = 1.0
 offset_left = -8.0
-offset_top = -14.0
+offset_top = -12.0
 text = "S"
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_font_sizes/font_size = 12
@@ -270,9 +271,9 @@ horizontal_alignment = 1
 [node name="CompassW" type="Label" parent="Control/Compass"]
 layout_mode = 0
 anchor_left = 0.0
-anchor_top = 0.5
+anchor_top = 0.0
 offset_left = 10.0
-offset_top = -8.0
+offset_top = 24.0
 text = "W"
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_font_sizes/font_size = 12
