@@ -49,6 +49,19 @@ echo "==> Packaging Windows ZIP..."
 ( cd builds/windows && zip -r -X "../LUMEN NULL-$VERSION-windows.zip" "LUMEN NULL.exe" "LUMEN NULL.pck" > /dev/null 2>&1 )
 
 echo "==> Packaging Linux tar.gz..."
+# Recreate AppDir if missing (needs rsvg-convert for icon)
+if [ ! -d "builds/linux/AppDir" ]; then
+  mkdir -p builds/linux/AppDir
+  cp "builds/linux/LUMEN NULL.x86_64" builds/linux/AppDir/
+  cp "builds/linux/LUMEN NULL.pck" builds/linux/AppDir/
+  if command -v rsvg-convert > /dev/null 2>&1; then
+    rsvg-convert -w 256 -h 256 -o builds/linux/AppDir/icon.png "$PROJECT_DIR/icon.svg" 2>/dev/null || true
+  fi
+  printf '#!/bin/sh\ncd "$(dirname "$0")"\nexec "./LUMEN NULL.x86_64" "$@"\n' > builds/linux/AppDir/AppRun
+  chmod +x builds/linux/AppDir/AppRun
+  printf '[Desktop Entry]\nName=LUMEN NULL\nComment=First-person lidar stealth game\nExec=LUMEN NULL.x86_64\nIcon=icon\nType=Application\nCategories=Game;\n' > builds/linux/AppDir/lumen-null.desktop
+  chmod +x builds/linux/AppDir/lumen-null.desktop
+fi
 ( cd builds/linux && tar -czf "../LUMEN NULL-$VERSION-linux.tar.gz" "LUMEN NULL.x86_64" "LUMEN NULL.pck" "AppDir" )
 
 echo "==> Packaging Web ZIP..."
