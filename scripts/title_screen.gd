@@ -20,6 +20,13 @@ var starting := false
 var _remap_callable: Callable
 var _pending_level := -1
 var _choosing_difficulty := false
+var update_request: HTTPRequest
+var update_status: Label
+var update_button: Button
+var latest_version: String = ""
+var update_asset_url: String = ""
+var update_checking := false
+var update_downloading := false
 
 
 func _ready() -> void:
@@ -58,6 +65,17 @@ func _ready() -> void:
 	ver.modulate = Color(1, 1, 1, 0.35)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(ver)
+	update_status = Label.new()
+	update_status.text = ""
+	update_status.add_theme_font_size_override("font_size", 14)
+	update_status.modulate = Color(1, 1, 1, 0.7)
+	update_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(update_status)
+	update_button = Button.new()
+	update_button.text = "UPDATE NOW"
+	update_button.visible = false
+	update_button.pressed.connect(_download_update)
+	column.add_child(update_button)
 	var gap := Control.new()
 	gap.custom_minimum_size = Vector2(0, 28)
 	column.add_child(gap)
@@ -82,6 +100,12 @@ func _ready() -> void:
 		_show(select_box)
 	else:
 		_show(main_box)
+
+	# Auto-updater: check GitHub for a newer release.
+	update_request = HTTPRequest.new()
+	add_child(update_request)
+	update_request.request_completed.connect(_on_update_request_completed)
+	_check_for_update()
 
 
 func _process(delta: float) -> void:
@@ -328,6 +352,103 @@ func _cancel_difficulty() -> void:
 		_difficulty_box = null
 	get_node("Control/Overlay").visible = false
 	_pending_level = -1
+
+
+func _check_for_update() -> void:
+	if update_checking:
+		return
+	update_checking = true
+	update_status.text = "Checking for updates..."
+	var headers := ["User-Agent: LUMEN NULL updater"]
+	var url := "https://api.github.com/repos/tundra-node/lumen-null/releases/latest"
+	update_request.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _on_update_request_completed(result: int, response_code: int, headers: Array, body: PackedByteArray) -> void:
+	if update_downloading:
+		update_downloading = false
+		update_button.disabled = false
+		if result != HTTPRequest.RESULT_SUCCESS:
+			update_status.text = "Download failed."
+			return
+		if response_code != 200:
+			update_status.text = "Download failed (HTTP %d)." % response_code
+			return
+		var ext := update_asset_url.get_file().get_extension().to_lower()
+		var save_path := "user://lumen_null_update." + ext
+		var f := FileAccess.open(save_path, FileAccess.WRITE)
+		if f == null:
+			update_status.text = "Could not save update."
+			return
+		f.store_buffer(body)
+		f.close()
+		update_status.text = "Update downloaded to %s. Replace your game files and restart." % save_path
+		return
+	update_checking = false
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+		update_status.text = "Update check failed."
+		return
+	var body_str := body.get_string_from_utf8()
+	# Simple string-based extraction of tag_name (avoids JSON enum issues).
+	var tag_start := body_str.find("\"tag_name\":\"")
+	if tag_start < 0:
+		update_status.text = "Update check failed."
+		return
+	var tag_end := body_str.find("\"", tag_start + 12)
+	if tag_end < 0:
+		update_status.text = "Update check failed."
+		return
+	latest_version = body_str.substr(tag_start + 12, tag_end - tag_start - 12)
+	if _version_newer(latest_version, VERSION):
+		update_status.text = "Update available: %s" % latest_version
+		update_button.visible = true
+		# Pick the asset for this platform.
+		# Pick the asset for this platform via simple string search.
+		var platform := OS.get_name().to_lower()
+		var want := ""
+		if platform == "macos":
+			want = "macos.dmg"
+		elif platform == "windows":
+			want = "windows.zip"
+		elif platform == "linux":
+			want = "linux.tar.gz"
+		if want != "":
+			var url_start := body_str.find("\"browser_download_url\":\"")
+			while url_start >= 0:
+				var url_end := body_str.find("\"", url_start + 24)
+				if url_end < 0:
+					break
+				var candidate_url := body_str.substr(url_start + 24, url_end - url_start - 24)
+				var candidate_name := candidate_url.get_file().to_lower()
+				if candidate_name.find(want) != -1:
+					update_asset_url = candidate_url
+					break
+				url_start = body_str.find("\"browser_download_url\":\"", url_end)
+	else:
+		update_status.text = "You're on the latest version (%s)." % VERSION
+
+
+func _version_newer(a: String, b: String) -> bool:
+	var pa := a.lstrip("v").split(".")
+	var pb := b.lstrip("v").split(".")
+	for i in range(maxi(pa.size(), pb.size())):
+		var va := pa[i].to_int() if i < pa.size() else 0
+		var vb := pb[i].to_int() if i < pb.size() else 0
+		if va > vb:
+			return true
+		if va < vb:
+			return false
+	return false
+
+
+func _download_update() -> void:
+	if update_asset_url == "" or update_downloading:
+		return
+	update_downloading = true
+	update_button.disabled = true
+	update_status.text = "Downloading update..."
+	var headers := ["User-Agent: LUMEN NULL updater"]
+	update_request.request(update_asset_url, headers, HTTPClient.METHOD_GET)
 
 
 func _start_level(index: int) -> void:
