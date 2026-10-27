@@ -6,3 +6,10 @@
 
 # exported builds
 /builds/
+/export/
+*.dmg
+*.pck
+
+# local agent and editor state
+.opencode/
+.vscode/
