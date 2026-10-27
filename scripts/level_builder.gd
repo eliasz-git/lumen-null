@@ -50,9 +50,9 @@ func _ready() -> void:
 		$Enemies.add_child(hunter)
 
 	if marks.has("K"):
-		var key: Area3D = KEY.instantiate()
+		var key = KEY.instantiate()
 		key.position = _cell_pos(marks["K"]) + Vector3(0, 0.2, 0)
-		key.collected.connect(game.collect_key)
+		key.connect("collected", Callable(game, "collect_key"))
 		add_child(key)
 	if marks.has("D"):
 		var door: Node3D = DOOR.instantiate()
