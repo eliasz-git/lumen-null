@@ -27,6 +27,7 @@ const ACK_GUARD_MS := 450
 
 var tooltip_shown_at := 0
 var ui_scale := 1.0
+var _base_font_sizes := Dictionary()
 var menu: VBoxContainer
 var pause_open := false
 var can_go_next := false
@@ -52,18 +53,28 @@ func _ready() -> void:
 
 func _apply_ui_scale() -> void:
 	ui_scale = clampf(float(settings.get("ui_scale")), 0.75, 2.0)
-	# Scale individual UI element sizes, not the CanvasLayer (which would zoom
-	# into the top-left corner). Font sizes authored in .tscn stay as-is.
-	_scale_node_sizes(get_node("Control"), ui_scale)
+	_scale_node(get_node("Control"), ui_scale)
 
 
-func _scale_node_sizes(node: Node, scale: float) -> void:
+func _scale_node(node: Node, scale: float) -> void:
 	if node is Control:
 		var c := node as Control
 		if c.custom_minimum_size.x > 0 or c.custom_minimum_size.y > 0:
 			c.custom_minimum_size = c.custom_minimum_size * scale
+		# Scale font size on labels/buttons (capture base once to avoid compounding)
+		if node is Label or node is Button:
+			var path := node.get_path()
+			if not _base_font_sizes.has(path):
+				var base: int
+				base = int(c.get_theme_font_size("font_size"))
+				if base > 0:
+					_base_font_sizes[path] = base
+			var base: int
+			base = int(_base_font_sizes.get(path, 0))
+			if base > 0:
+				c.add_theme_font_size_override("font_size", int(base * scale))
 	for child in node.get_children():
-		_scale_node_sizes(child, scale)
+		_scale_node(child, scale)
 
 
 func _process(_delta: float) -> void:
@@ -232,12 +243,13 @@ func _draw_minimap() -> void:
 		c.queue_free()
 	if cells.is_empty():
 		return
-	var cell_size := 160.0 / 36.0
+	var cell_size := 220.0 / 36.0
 	var player: Node3D = game._player
 	var plx := player.global_position.x
 	var plz := player.global_position.z
 	var pcx := floori(plx + 18)
 	var pcz := floori(plz + 18)
+	var center := 120.0
 	# Draw scanned cells (faded by distance from player center)
 	for cell in cells.keys():
 		var cx: int = cell.x
@@ -246,13 +258,13 @@ func _draw_minimap() -> void:
 		dot.custom_minimum_size = Vector2(cell_size - 1.0, cell_size - 1.0)
 		dot.color = Color(0.6, 0.8, 1.0, 0.35)
 		contents.add_child(dot)
-		dot.position = Vector2((cx - pcx) * cell_size + 80.0 - cell_size * 0.5, (cz - pcz) * cell_size + 80.0 - cell_size * 0.5)
+		dot.position = Vector2((cx - pcx) * cell_size + center - cell_size * 0.5, (cz - pcz) * cell_size + center - cell_size * 0.5)
 	# Draw player marker (green dot)
 	var pl := ColorRect.new()
 	pl.custom_minimum_size = Vector2(cell_size - 0.5, cell_size - 0.5)
 	pl.color = Color(0, 1, 0, 1)
 	contents.add_child(pl)
-	pl.position = Vector2(80.0 - cell_size * 0.5, 80.0 - cell_size * 0.5)
+	pl.position = Vector2(center - cell_size * 0.5, center - cell_size * 0.5)
 	# Draw player direction indicator (small yellow dot ahead of player)
 	var dir_len := cell_size * 0.5
 	var dir := Vector2(-sin(player.rotation.y), -cos(player.rotation.y)).normalized()
@@ -260,7 +272,7 @@ func _draw_minimap() -> void:
 	dir_dot.custom_minimum_size = Vector2(3.0, 3.0)
 	dir_dot.color = Color(1, 1, 0, 1)
 	contents.add_child(dir_dot)
-	dir_dot.position = Vector2(80.0 + dir.x * dir_len - 1.5, 80.0 + dir.y * dir_len - 1.5)
+	dir_dot.position = Vector2(center + dir.x * dir_len - 1.5, center + dir.y * dir_len - 1.5)
 
 
 func _draw_compass() -> void:

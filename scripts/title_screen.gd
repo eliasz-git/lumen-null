@@ -4,7 +4,7 @@ extends Control
 const LevelData := preload("res://scripts/level_data.gd")
 const UITheme := preload("res://scripts/ui_theme.gd")
 const MUSIC_DB := -9.0
-const VERSION := "v0.4.3"
+const VERSION := "v0.4.5"
 
 var settings: Node
 var game: Node
@@ -27,6 +27,7 @@ var latest_version: String = ""
 var update_asset_url: String = ""
 var update_checking := false
 var update_downloading := false
+var _base_font_sizes := Dictionary()
 
 
 func _ready() -> void:
@@ -490,6 +491,17 @@ func _scale_sizes(node: Node, scale: float) -> void:
 		var c := node as Control
 		if c.custom_minimum_size.x > 0 or c.custom_minimum_size.y > 0:
 			c.custom_minimum_size = c.custom_minimum_size * scale
+		# Scale font size on labels/buttons (capture base once to avoid compounding)
+		if node is Label or node is Button:
+			var path := node.get_path()
+			if not _base_font_sizes.has(path):
+				var base := c.get_theme_font_size("font_size")
+				if base > 0:
+					_base_font_sizes[path] = base
+			var base: int
+			base = int(_base_font_sizes.get(path, 0))
+			if base > 0:
+				c.add_theme_font_size_override("font_size", int(base * scale))
 	for child in node.get_children():
 		_scale_sizes(child, scale)
 
