@@ -7,7 +7,7 @@ extends Node
 const LevelData := preload("res://scripts/level_data.gd")
 
 @onready var game: Node = get_node("/root/GameState")
-@onready var hud: Node = $"../HUD"
+@onready var hud = $"../HUD"
 
 var current := -1
 var active := true
@@ -127,4 +127,44 @@ func _finish() -> void:
 	game.hunter_suppressed = false
 	hud.show_tutorial_prompt("")
 	hud.hide_tooltip()
+	_show_difficulty_selector()
+
+
+func _show_difficulty_selector() -> void:
+	var overlay := hud.get_node("Overlay")
+	var vbox := overlay.get_node("Center/VBox")
+	for c in vbox.get_children():
+		c.queue_free()
+	overlay.visible = true
+	var title := Label.new()
+	title.text = "CHOOSE DIFFICULTY"
+	title.add_theme_font_size_override("font_size", 40)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var hint := Label.new()
+	hint.text = "You can change this later in SETTINGS."
+	hint.add_theme_font_size_override("font_size", 16)
+	hint.modulate = Color(1, 1, 1, 0.7)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint)
+
+	var easy := Button.new()
+	easy.text = "EASY  //  minimap + compass, standard hunters"
+	easy.pressed.connect(func(): _confirm_difficulty("easy"))
+	vbox.add_child(easy)
+	var normal := Button.new()
+	normal.text = "NORMAL  //  compass only, standard hunters"
+	normal.pressed.connect(func(): _confirm_difficulty("normal"))
+	vbox.add_child(normal)
+	var hard := Button.new()
+	hard.text = "HARD  //  no minimap, no compass, faster hunters"
+	hard.pressed.connect(func(): _confirm_difficulty("hard"))
+	vbox.add_child(hard)
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _confirm_difficulty(d: String) -> void:
+	game.set_difficulty(d)
+	var overlay := hud.get_node("Overlay")
+	overlay.visible = false
 	get_tree().paused = false

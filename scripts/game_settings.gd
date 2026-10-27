@@ -8,7 +8,7 @@ var scan_key := KEY_E          # remappable scan key (default E)
 var difficulty := "normal"     # "easy" = minimap + compass, "normal" = compass, "hard" = nothing
 var ui_scale := 1.0            # UI size multiplier (1.0 default, 1.5 bigger)
 var cleared_levels := []       # level indices the player has cleared at least once
-var best_times := {}           # level index -> seconds
+var best_times := {}           # "level:difficulty" -> seconds
 var unlocked_levels := 1
 
 const SETTINGS_PATH := "user://lumen_null_settings.cfg"
@@ -90,12 +90,19 @@ func _load() -> void:
 	if config.has_section("records"):
 		for key in config.get_section_keys("records"):
 			if key == "best_time":
-				# Saves from before there were multiple levels: a single best time for level 1.
-				best_times[0] = float(config.get_value("records", key))
+				# Old format: single best time for level 1, migrate to level 0 normal.
+				best_times["0:normal"] = float(config.get_value("records", key))
 			elif key.begins_with("best_") and key.trim_prefix("best_").is_valid_int():
-				best_times[int(key.trim_prefix("best_"))] = float(config.get_value("records", key))
-	for cleared in best_times:
-		unlocked_levels = maxi(unlocked_levels, int(cleared) + 2)
+				# Old format: best time for a level, migrate to normal difficulty.
+				best_times[key.trim_prefix("best_") + ":normal"] = float(config.get_value("records", key))
+			elif key.begins_with("best_") and key.trim_prefix("best_").find(":") != -1:
+				# New format: best_LEVEL:DIFFICULTY
+				best_times[key.trim_prefix("best_")] = float(config.get_value("records", key))
+	for k in best_times.keys():
+		var parts: Array = k.split(":")
+		if parts.size() == 2:
+			var li := int(parts[0])
+			unlocked_levels = maxi(unlocked_levels, li + 2)
 
 
 func _save() -> void:
@@ -108,8 +115,8 @@ func _save() -> void:
 	config.set_value("comfort", "ui_scale", ui_scale)
 	config.set_value("records", "cleared_levels", cleared_levels)
 	config.set_value("records", "unlocked_levels", unlocked_levels)
-	for level in best_times:
-		config.set_value("records", "best_%d" % level, best_times[level])
+	for k in best_times.keys():
+		config.set_value("records", "best_%s" % k, best_times[k])
 	config.save(SETTINGS_PATH)
 
 

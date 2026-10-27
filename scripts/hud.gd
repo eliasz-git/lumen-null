@@ -182,14 +182,15 @@ func _on_player_died() -> void:
 
 func _on_player_won() -> void:
 	var level: int = game.current_level
-	var new_best: bool = settings.record_time(level, game.elapsed)
+	var diff: String = game.difficulty
+	var new_best: bool = settings.record_time(level, game.elapsed, diff)
 	var def: Dictionary = LevelData.get_level(level)
 	var has_next := level + 1 < LevelData.COUNT
 	can_go_next = has_next
 	var title := "NEW BEST" if new_best else "LEVEL COMPLETE"
 	if not has_next:
 		title = "YOU ESCAPED" if not new_best else "NEW BEST"
-	var hint := "LEVEL %d  //  %s\nTIME  %s     BEST  %s" % [level + 1, def["name"], _fmt(game.elapsed), _fmt(settings.best_time(level))]
+	var hint := "LEVEL %d  //  %s  [%s]\nTIME  %s     BEST  %s" % [level + 1, def["name"], diff.to_upper(), _fmt(game.elapsed), _fmt(settings.best_time(level, diff))]
 	var items: Array = []
 	if has_next:
 		items.append(["NEXT LEVEL  (N)", func(): game.start_level(level + 1)])
@@ -281,6 +282,21 @@ func _draw_compass() -> void:
 	var player: Node3D = game._player
 	if player == null:
 		return
-	var yaw := -player.rotation.y
-	var needle_rot := yaw + PI / 2.0
-	compass_needle.rotation = needle_rot
+	# Make sure the needle has a texture (generated once)
+	if compass_needle.texture == null:
+		_compass_needle_texture()
+	# Godot 2D rotation: 0 = right, PI/2 = down, PI = left, -PI/2 = up.
+	# Player rotation.y = 0 faces +Z (north). Needle should point up when facing north.
+	compass_needle.rotation = -PI / 2.0 + player.rotation.y
+
+
+func _compass_needle_texture() -> void:
+	# Generate a small vertical bar needle texture so the Sprite2D is visible.
+	var img := Image.create(8, 28, false, Image.FORMAT_RGBA8)
+	for x in range(8):
+		for y in range(28):
+			var a = 1.0 - abs(x - 3.5) / 4.0
+			a = clampf(a, 0.0, 1.0)
+			img.set_pixel(x, y, Color(1, 0.3, 0.3, 0.95 * a))
+	var tex := ImageTexture.create_from_image(img)
+	compass_needle.texture = tex

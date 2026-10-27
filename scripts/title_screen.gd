@@ -195,8 +195,9 @@ func _refresh_levels() -> void:
 		var def: Dictionary = LevelData.get_level(i)
 		var b := Button.new()
 		if i < settings.unlocked_levels:
-			var best: float = settings.best_time(i)
-			var best_text := "BEST  %02d:%02d" % [int(best) / 60, int(best) % 60] if best > 0.0 else "NOT CLEARED"
+			var diff: String = String(settings.get("difficulty"))
+			var best: float = settings.best_time(i, diff)
+			var best_text := "BEST  %02d:%02d  [%s]" % [int(best) / 60, int(best) % 60, diff.to_upper()] if best > 0.0 else "NOT CLEARED"
 			var cleared_tag := "  [CLEARED]" if game.is_cleared(i) else ""
 			b.text = "%d   //   %s\n%s     %s%s" % [i + 1, def["name"], def["tagline"], best_text, cleared_tag]
 			b.pressed.connect(_select_level.bind(i))
