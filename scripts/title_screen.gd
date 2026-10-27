@@ -4,7 +4,7 @@ extends Control
 const LevelData := preload("res://scripts/level_data.gd")
 const UITheme := preload("res://scripts/ui_theme.gd")
 const MUSIC_DB := -9.0
-const VERSION := "v0.4.2"
+const VERSION := "v0.4.3"
 
 var settings: Node
 var game: Node
