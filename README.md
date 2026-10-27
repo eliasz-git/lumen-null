@@ -41,7 +41,8 @@ godot --headless --path . --script res://tests/test_levels.gd   # level data and
 `tests/test_levels.gd` checks every map (36x36, one of each marker, exit and
 waypoints reachable from the start, hunters spawn away from the player), then
 builds each level and checks the hunters, walls, nav grid, and that the hunter
-pathing finds a route to the exit. It exits non-zero on failure.
+pathing finds a route to the exit. It exits non-zero on failure. GitHub Actions
+runs both on every push (`.github/workflows/checks.yml`).
 
 ## Controls
 
