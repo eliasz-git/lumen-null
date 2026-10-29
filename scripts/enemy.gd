@@ -17,9 +17,7 @@ enum State { PATROL, REACT, INVESTIGATE, SEARCH, CHASE, STUNNED }
 @export var noise_cooldown := 2.5
 @export var speed_scale := 1.0
 
-var patrol_points: Array[Vector3] = [
-	Vector3(-12, 0, 2.5), Vector3(12, 0, 2.5), Vector3(14, 0, -3), Vector3(-12, 0, -3),
-]
+var patrol_points: Array[Vector3] = []
 
 @onready var game: Node = get_node("/root/GameState")
 @onready var model: Node3D = $Model

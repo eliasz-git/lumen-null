@@ -121,14 +121,17 @@ func _save() -> void:
 
 
 ## Returns true if this run is a new best for the level. Also unlocks the next level.
-func record_time(level: int, t: float) -> bool:
-	var new_best: bool = (not best_times.has(level)) or t < float(best_times[level])
+## Keyed by "level:difficulty" so each difficulty tracks its own best time.
+func record_time(level: int, t: float, difficulty: String = "normal") -> bool:
+	var key: String = "%d:%s" % [level, difficulty]
+	var new_best: bool = (not best_times.has(key)) or t < float(best_times[key])
 	if new_best:
-		best_times[level] = t
+		best_times[key] = t
 	unlocked_levels = maxi(unlocked_levels, level + 2)
 	_save()
 	return new_best
 
 
-func best_time(level: int) -> float:
-	return float(best_times.get(level, 0.0))
+func best_time(level: int, difficulty: String = "normal") -> float:
+	var key: String = "%d:%s" % [level, difficulty]
+	return float(best_times.get(key, 0.0))

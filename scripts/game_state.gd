@@ -27,6 +27,7 @@ var doors: Array = []       # door instances awaiting the key
 var difficulty := "normal"  # "easy" = minimap + compass, "normal" = compass, "hard" = nothing
 var cleared_levels := []    # level indices cleared at least once (unlocks difficulty selector)
 var hunters: Array = []     # hunter instances registered by level_builder
+var unlocked_scan_types: Array[int] = []  # scan types the player has unlocked (by level)
 
 @onready var _player: Node3D
 @onready var settings: Node = get_node("/root/GameSettings")
@@ -108,6 +109,15 @@ func mark_cleared(level: int) -> void:
 		cleared_levels.append(level)
 		cleared_levels.sort_custom(func(a, b): return a < b)
 	settings.call("mark_cleared", level)
+	# Each cleared level unlocks another scan type (max 4).
+	var next_type := level + 1  # level 0 unlocks type 1, level 1 unlocks type 2, etc.
+	if next_type <= 3 and not unlocked_scan_types.has(next_type):
+		unlocked_scan_types.append(next_type)
+		unlocked_scan_types.sort()
+
+
+func is_scan_unlocked(st: int) -> bool:
+	return unlocked_scan_types.has(st)
 
 
 func is_cleared(level: int) -> bool:
@@ -128,6 +138,7 @@ func _reset_run() -> void:
 	tutorial_active = false
 	doors.clear()
 	hunters.clear()
+	unlocked_scan_types = [0]  # start with STANDARD only; each cleared level unlocks another
 	get_tree().paused = false
 
 

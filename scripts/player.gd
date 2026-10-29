@@ -1,6 +1,7 @@
 extends CharacterBody3D
 ## LUMEN NULL first-person-ish player.
 ## WASD move, Space jump, E = lidar pulse (cone scan forward).
+## Q cycles between scan types: STANDARD / FOCUS / PULSE / WHISPER.
 
 @export var move_speed := 5.0
 @export var sprint_speed := 8.5
@@ -10,6 +11,7 @@ extends CharacterBody3D
 @export var max_ray_count := 1800
 @export var max_hold_time := 1.0
 @export var scan_cooldown := 1.6
+@export var scan_cycle_key := KEY_Q
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -29,6 +31,8 @@ var current_cooldown := 1.6
 var scan_key: int = KEY_E
 var joy_scan_button: int = 2
 var has_noise_item := false
+# Scanner.ScanType: 0=STANDARD, 1=FOCUS, 2=PULSE, 3=WHISPER
+var scan_type: int = 0
 var ping_sound: AudioStreamPlayer
 var death_sound: AudioStreamPlayer
 var pulse_charge_sound: AudioStreamPlayer
@@ -43,7 +47,17 @@ func _ready() -> void:
 	mouse_sensitivity = float(settings.get("mouse_sensitivity"))
 	scan_key = int(settings.get("scan_key"))
 	joy_scan_button = 2
-	scanner.strong_pulse_at.connect(func(pos): game.stun_hunter_at(pos))
+	# Sync the current scan type with what's unlocked for this level.
+	if game.has_method("is_scan_unlocked"):
+		var available := []
+		for i in range(4):
+			if game.is_scan_unlocked(i):
+				available.append(i)
+		if available.has(scan_type):
+			pass  # keep current if still unlocked
+		else:
+			scan_type = available[0]  # fall back to lowest unlocked
+	scanner.strong_pulse_at.connect(func(pos, st): game.stun_hunter_at(pos))
 	# Audio: ping on pulse, sting on death.
 	ping_sound = AudioStreamPlayer.new()
 	ping_sound.stream = load("res://sounds/ping.wav")
@@ -99,12 +113,43 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and not event.echo:
 		if event.keycode == scan_key:
 			_handle_scan_input(event.pressed)
+		if event.keycode == KEY_Q:
+			_cycle_scan_type()
 	if event is InputEventJoypadButton and event.device == 0:
 		if event.button_index == joy_scan_button:
 			_handle_scan_input(event.pressed)
 	if event is InputEventKey and not event.echo and event.pressed:
 		if event.keycode == KEY_V and has_noise_item:
 			_drop_noise_item()
+
+
+func _cycle_scan_type() -> void:
+	var names := ["STANDARD", "FOCUS", "PULSE", "WHISPER"]
+	var descs := [
+		"BALANCED CONE SCAN",
+		"NARROW • LONG RANGE • STRONG HUNTER FIX",
+		"OMNI BURST • SHORT RANGE • STRONG ALERT • FADES FAST",
+		"NARROW • SHORT RANGE • QUIET • FAST RECHARGE",
+	]
+	# Build the list of unlocked scan types.
+	var unlocked := []
+	for i in range(4):
+		if game.is_scan_unlocked(i):
+			unlocked.append(i)
+	if unlocked.is_empty():
+		unlocked = [0]
+	# Find current position in unlocked list and advance to next.
+	var idx := unlocked.find(scan_type)
+	if idx < 0:
+		idx = 0
+	var next_idx := (idx + 1) % unlocked.size()
+	scan_type = unlocked[next_idx]
+	# Show scan type in the cooldown meter label area via a tooltip-style prompt.
+	var hud := get_tree().get_first_node_in_group("hud")
+	if hud != null and hud.has_method("show_scan_type"):
+		hud.show_scan_type(names[scan_type], descs[scan_type])
+	else:
+		print("Scan type: %s" % names[scan_type])
 
 
 func _drop_noise_item() -> void:
@@ -181,7 +226,7 @@ func _release_pulse() -> void:
 	var t: float = clampf(hold_time / max_hold_time, 0.0, 1.0)
 	scanner.ray_count = int(lerpf(min_ray_count, max_ray_count, t))
 	scanner.max_range = lerpf(12.0, 24.0, t)
-	scanner.scan(t)
+	scanner.scan(t, scan_type)
 	if ping_sound:
 		ping_sound.volume_db = 0.0
 		ping_sound.pitch_scale = 1.0

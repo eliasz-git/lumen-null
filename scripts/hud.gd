@@ -36,6 +36,7 @@ var can_go_next := false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("hud")
 	overlay.visible = false
 	overlay.theme = UITheme.build()
 	tooltip.visible = false
@@ -217,6 +218,10 @@ func hide_tooltip() -> void:
 	tooltip.visible = false
 
 
+func show_scan_type(name: String, desc: String) -> void:
+	tutorial_prompt.text = "%s  //  %s" % [name, desc]
+
+
 func _fmt(t: float) -> String:
 	if t <= 0.0:
 		return "--:--"
@@ -311,28 +316,9 @@ func _draw_compass() -> void:
 	# Clear old POI icons
 	for c in poi_icons.get_children():
 		c.queue_free()
-	
-	# Gather POIs: exit gate + hunters
-	var pois := []
-	var exit_beacon := get_tree().get_first_node_in_group("beacon")
-	if exit_beacon != null:
-		pois.append({"pos": exit_beacon.global_position, "color": Color(0, 1, 1, 1)})
-	for h in game.hunters:
-		if h is Node3D:
-			pois.append({"pos": h.global_position, "color": Color(1, 0.3, 0.3, 1)})
-	
-	for poi in pois:
-		var dir_to_poi: Vector3 = (poi["pos"] - player.global_position).normalized()
-		var dir_angle := atan2(dir_to_poi.x, dir_to_poi.z)
-		var rel := _compass_norm(forward_angle - dir_angle)
-		var sx := center_x + rel * scale
-		if abs(rel) > PI * 0.66:
-			continue
-		var icon := ColorRect.new()
-		icon.custom_minimum_size = Vector2(10, 10)
-		icon.color = poi["color"]
-		poi_icons.add_child(icon)
-		icon.position = Vector2(sx - 5.0, 8.0)
+
+	# Compass shows cardinal directions only — no POI markers. It orients the
+	# player in the world, not what's around them.
 
 
 func _compass_norm(a: float) -> float:
