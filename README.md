@@ -29,8 +29,9 @@ godot --path .
 
 Or open the Godot project manager, import `project.godot`, and press Play
 (F5). There is no build step; Godot runs the project from source. Exported
-builds are published as GitHub release v0.4.0:
+builds are published as GitHub release v0.4.8:
 github.com/tundra-node/lumen-null/releases
+
 
 ## Checks
 

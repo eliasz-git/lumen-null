@@ -16,7 +16,7 @@
 - Settings: sensitivity, volume, fullscreen, remappable scan key. macOS launcher
   app runs from source; gamepad supported.
 - Exported builds (macOS .dmg, Windows .zip, Linux .tar.gz, Web .zip) published
-  as GitHub release v0.1.0 at github.com/tundra-node/lumen-null/releases.
+  as GitHub release v0.4.8 at github.com/tundra-node/lumen-null/releases.
 - Headless level checks (`tests/test_levels.gd`): map shape, reachability,
   spawn distance, and a built-level pathing check for every level.
 - Playtest tuning: hunter speed, scan recharge and dot lifetime are per-level
