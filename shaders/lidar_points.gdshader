@@ -4,7 +4,8 @@ render_mode unshaded, cull_disabled, shadows_disabled;
 // Billboarded round LiDAR dots.
 // INSTANCE_CUSTOM.r = unused (reserved)
 // INSTANCE_CUSTOM.g = kind (0 world, 1 hunter, 2 beacon)
-// INSTANCE_CUSTOM.b = spawn time (same clock as `now`); dots fade over `lifetime`
+// INSTANCE_CUSTOM.b = spawn time (same clock as `now`)
+// INSTANCE_CUSTOM.w = lifetime multiplier (scan-type specific)
 
 uniform float now = 0.0;
 uniform float lifetime : hint_range(0.5, 30.0) = 6.0;
@@ -17,7 +18,7 @@ void vertex() {
 		length(MODEL_MATRIX[1].xyz),
 		length(MODEL_MATRIX[2].xyz)
 	);
-	float age = clamp((now - INSTANCE_CUSTOM.b) / lifetime, 0.0, 1.0);
+	float age = clamp((now - INSTANCE_CUSTOM.b) / (lifetime * INSTANCE_CUSTOM.w), 0.0, 1.0);
 	s *= mix(1.0, 0.35, age);
 	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
 		INV_VIEW_MATRIX[0] * s.x,
